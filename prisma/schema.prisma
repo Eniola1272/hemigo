@@ -38,15 +38,70 @@ enum PaymentStatus {
   FAILED
 }
 
+enum VendorRole {
+  OWNER
+  ADMIN
+  STAFF
+}
+
+enum SettlementStatus {
+  PENDING
+  PROCESSING
+  PAID
+  FAILED
+}
+
 model User {
   id           String          @id @default(cuid())
   email        String          @unique
   passwordHash String
   name         String?
+  emailVerifiedAt DateTime?
   vendors      VendorProfile[]
+  memberships  VendorMember[]
+  sessions     Session[]
   orders       Order[]         @relation("CustomerOrders")
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String   @unique
+  expiresAt DateTime
+  userAgent String?
+  ipAddress String?
+  createdAt DateTime @default(now())
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model EmailVerificationToken {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  @@index([userId])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  @@index([userId])
+}
+
+model AuthRateLimit {
+  key         String   @id
+  count       Int      @default(0)
+  windowStart DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  @@index([windowStart])
 }
 
 model VendorProfile {
@@ -61,11 +116,32 @@ model VendorProfile {
   contactEmail            String?
   location                String?
   paystackSubaccountCode  String?
+  onboardingCompleted     Boolean         @default(false)
+  deliveryEnabled        Boolean         @default(true)
+  pickupEnabled          Boolean         @default(true)
+  deliveryFeeKobo        Int             @default(50000)
+  bankName               String?
+  accountNumber          String?
+  accountName            String?
+  members                 VendorMember[]
   products                Product[]
   windows                 SellingWindow[]
   orders                  Order[]
+  settlements             Settlement[]
   createdAt               DateTime        @default(now())
   updatedAt               DateTime        @updatedAt
+}
+
+model VendorMember {
+  id        String        @id @default(cuid())
+  userId    String
+  vendorId  String
+  role      VendorRole    @default(STAFF)
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vendor    VendorProfile @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  createdAt DateTime      @default(now())
+  @@unique([userId, vendorId])
+  @@index([vendorId])
 }
 
 model Product {
@@ -124,6 +200,7 @@ model WindowProduct {
 model Order {
   id                String             @id @default(cuid())
   orderNumber       String             @unique
+  publicToken       String             @unique
   vendorId          String
   windowId          String
   customerUserId    String?
@@ -175,4 +252,32 @@ model Payment {
   processedAt        DateTime?
   createdAt          DateTime      @default(now())
   updatedAt          DateTime      @updatedAt
+}
+
+model WebhookEvent {
+  id         String   @id @default(cuid())
+  provider   String   @default("paystack")
+  eventKey   String   @unique
+  eventType  String
+  payload    Json
+  processed  Boolean  @default(false)
+  error      String?
+  receivedAt DateTime @default(now())
+  processedAt DateTime?
+}
+
+model Settlement {
+  id                String           @id @default(cuid())
+  vendorId          String
+  vendor            VendorProfile    @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  providerReference String?          @unique
+  grossKobo         Int
+  platformFeeKobo   Int
+  providerFeeKobo   Int              @default(0)
+  netKobo           Int
+  status            SettlementStatus @default(PENDING)
+  settledAt         DateTime?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  @@index([vendorId, status])
 }

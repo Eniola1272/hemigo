@@ -1,0 +1,6 @@
+"use client";
+import { useState } from "react";
+import { AuthShell } from "@/components/auth/auth-shell";
+import { Button } from "@/components/ui/button";
+import { Field, Input } from "@/components/ui/form-field";
+export default function ForgotPassword(){const[message,setMessage]=useState("");const[dev,setDev]=useState("");async function submit(e:React.FormEvent<HTMLFormElement>){e.preventDefault();const f=new FormData(e.currentTarget);const response=await fetch("/api/auth/request-password-reset",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:f.get("email")})});const body=await response.json();setMessage("If that account exists, a reset link is on its way.");setDev(body.devUrl||"")}return <AuthShell quote="Hemigo keeps the details organised, even on the busiest weekends."><h1 className="text-4xl font-bold tracking-tight">Reset your password.</h1><p className="mt-3 text-slate-500">We’ll send a secure link that expires in 30 minutes.</p><form onSubmit={submit} className="mt-8 grid gap-5"><Field label="Email address"><Input name="email" type="email" required/></Field><Button type="submit">Send reset link</Button></form>{message&&<p className="mt-5 text-sm text-emerald-700">{message}</p>}{dev&&<Button href={dev} tone="secondary" className="mt-4 w-full">Open local reset link</Button>}</AuthShell>}

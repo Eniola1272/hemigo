@@ -1,4 +1,5 @@
 import { Prisma } from "@prisma/client";
+import { randomBytes } from "node:crypto";
 import { db } from "@/lib/db";
 import type { CheckoutInput } from "@/lib/validation/checkout";
 
@@ -8,7 +9,7 @@ export async function createInventoryReservation(input: CheckoutInput) {
   return db.$transaction(async (tx) => {
     const now = new Date();
     const window = await tx.sellingWindow.findUnique({ where: { id: input.windowId }, include: { vendor: true } });
-    if (!window || window.opensAt > now || window.closesAt <= now || window.status !== "LIVE") throw new Error("This selling window is not accepting orders.");
+    if (!window || window.opensAt > now || window.closesAt <= now || window.status === "DRAFT") throw new Error("This selling window is not accepting orders.");
 
     const requestedIds = input.items.map((item) => item.windowProductId);
     if (new Set(requestedIds).size !== requestedIds.length) throw new Error("Duplicate cart items are not allowed.");
@@ -32,13 +33,16 @@ export async function createInventoryReservation(input: CheckoutInput) {
       const product = products.find((item) => item.id === requested.windowProductId)!;
       return total + product.priceKobo * requested.quantity;
     }, 0);
-    const deliveryFeeKobo = input.fulfillmentType === "Delivery" ? 50000 : 0;
+    if (input.fulfillmentType === "Delivery" && !window.vendor.deliveryEnabled) throw new Error("Delivery is not available for this window.");
+    if (input.fulfillmentType === "Pickup" && !window.vendor.pickupEnabled) throw new Error("Pickup is not available for this window.");
+    const deliveryFeeKobo = input.fulfillmentType === "Delivery" ? window.vendor.deliveryFeeKobo : 0;
     const reference = `HMG-${Date.now().toString().slice(-8)}`;
     const expiresAt = new Date(now.getTime() + RESERVATION_MINUTES * 60_000);
 
     return tx.order.create({
       data: {
         orderNumber: reference,
+        publicToken: randomBytes(18).toString("base64url"),
         vendorId: window.vendorId,
         windowId: window.id,
         customerName: input.customerName,

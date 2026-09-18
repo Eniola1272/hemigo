@@ -1,0 +1,4 @@
+import { NextResponse } from "next/server";
+import { db } from "@/lib/db";
+import { createSession, hashToken } from "@/lib/auth/session";
+export async function GET(request:Request){const token=new URL(request.url).searchParams.get("token");if(!token)return NextResponse.redirect(new URL("/login?error=invalid-verification",request.url));const record=await db.emailVerificationToken.findUnique({where:{tokenHash:hashToken(token)}});if(!record||record.expiresAt<=new Date())return NextResponse.redirect(new URL("/login?error=expired-verification",request.url));await db.$transaction([db.user.update({where:{id:record.userId},data:{emailVerifiedAt:new Date()}}),db.emailVerificationToken.deleteMany({where:{userId:record.userId}})]);await createSession(record.userId);return NextResponse.redirect(new URL("/onboarding",request.url))}

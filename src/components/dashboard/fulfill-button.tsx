@@ -1,0 +1,5 @@
+"use client";
+import { useState } from "react";
+import { Check, CheckCircle2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+export function FulfillButton({orderId,fulfilled}:{orderId:string;fulfilled:boolean}){const[done,setDone]=useState(fulfilled);const[busy,setBusy]=useState(false);const[error,setError]=useState("");async function fulfill(){setBusy(true);const response=await fetch(`/api/dashboard/orders/${orderId}`,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"fulfill"})});const body=await response.json();if(!response.ok){setError(body.error??"Could not update the order.");setBusy(false);return}setDone(true)}return <>{done?<div className="flex items-center justify-center gap-2 rounded-[10px] bg-emerald-50 p-4 font-semibold text-emerald-700"><CheckCircle2 size={20}/>Order marked as fulfilled</div>:<Button onClick={fulfill} disabled={busy} className="w-full"><Check size={17}/>{busy?"Updating…":"Mark as fulfilled"}</Button>}{error&&<p className="mt-2 text-sm text-red-700">{error}</p>}</>}

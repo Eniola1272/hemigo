@@ -25,7 +25,7 @@ export default function Home() {
       <section className="relative px-0 pb-24 pt-20 sm:pt-28">
         <div className="absolute right-[-120px] top-24 -z-0 size-[360px] rounded-full bg-amber-100/70 blur-3xl" />
         <div className="container-shell relative z-10 text-center">
-          <div className="mx-auto mb-6 inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-3.5 py-2 text-xs font-bold text-indigo-700"><span className="live-dot size-2 rounded-full bg-emerald-500"/>Built for modern African sellers</div>
+          <div className="mx-auto mb-6 inline-flex items-center gap-2 rounded-full border border-indigo-200 bg-indigo-50 px-3.5 py-2 text-xs font-bold text-indigo-700"><span className="live-dot size-2 rounded-full bg-emerald-500"/>Built for multiple order fulfillment</div>
           <h1 className="display balance mx-auto max-w-5xl text-slate-950">Sell in batches.<br/><span className="text-indigo-700">Fulfill without chaos.</span></h1>
           <p className="balance mx-auto mt-7 max-w-2xl text-lg leading-8 text-slate-600">Create a storefront, set when orders close, collect payments and know exactly what you need to prepare.</p>
           <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row"><Button href="/signup" size="lg">Start selling <ArrowRight size={18}/></Button><Button href="#how" tone="secondary" size="lg">See how it works</Button></div>
