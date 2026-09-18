@@ -1,0 +1,3 @@
+"use client";
+import { Button } from "@/components/ui/button";
+export default function ErrorPage({ reset }: { error: Error & { digest?: string }; reset: () => void }) { return <main className="grid min-h-screen place-items-center bg-slate-50 px-4"><div className="max-w-md text-center"><div className="mx-auto grid size-16 place-items-center rounded-[16px] bg-amber-100 text-3xl">!</div><h1 className="mt-6 text-3xl font-bold tracking-tight">Something didn&apos;t go to plan.</h1><p className="mt-3 leading-7 text-slate-500">Your changes are safe. Try that again, or return to your dashboard.</p><div className="mt-7 flex justify-center gap-3"><Button onClick={reset}>Try again</Button><Button href="/dashboard" tone="secondary">Dashboard</Button></div></div></main> }

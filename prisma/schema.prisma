@@ -1,0 +1,178 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum WindowStatus {
+  DRAFT
+  UPCOMING
+  LIVE
+  CLOSED
+}
+
+enum StorefrontTheme {
+  CLASSIC
+  HYPE
+}
+
+enum OrderStatus {
+  RESERVED
+  PAID
+  FAILED
+  EXPIRED
+  REFUNDED
+}
+
+enum FulfillmentStatus {
+  PENDING
+  FULFILLED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+model User {
+  id           String          @id @default(cuid())
+  email        String          @unique
+  passwordHash String
+  name         String?
+  vendors      VendorProfile[]
+  orders       Order[]         @relation("CustomerOrders")
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+}
+
+model VendorProfile {
+  id                      String          @id @default(cuid())
+  ownerId                 String
+  owner                   User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  name                    String
+  slug                    String          @unique
+  category                String
+  phone                   String
+  whatsapp                String?
+  contactEmail            String?
+  location                String?
+  paystackSubaccountCode  String?
+  products                Product[]
+  windows                 SellingWindow[]
+  orders                  Order[]
+  createdAt               DateTime        @default(now())
+  updatedAt               DateTime        @updatedAt
+}
+
+model Product {
+  id           String          @id @default(cuid())
+  vendorId     String
+  vendor       VendorProfile   @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  name         String
+  slug         String
+  description  String
+  imageUrl     String?
+  defaultPrice Int
+  active       Boolean         @default(true)
+  windowItems  WindowProduct[]
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  @@unique([vendorId, slug])
+}
+
+model SellingWindow {
+  id              String            @id @default(cuid())
+  vendorId        String
+  vendor          VendorProfile     @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  name            String
+  slug            String
+  description     String?
+  headline        String?
+  opensAt         DateTime
+  closesAt        DateTime
+  fulfillmentAt   DateTime?
+  status          WindowStatus      @default(DRAFT)
+  theme           StorefrontTheme   @default(CLASSIC)
+  windowProducts  WindowProduct[]
+  orders          Order[]
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  @@unique([vendorId, slug])
+  @@index([status, opensAt, closesAt])
+}
+
+model WindowProduct {
+  id                   String        @id @default(cuid())
+  windowId             String
+  productId            String
+  window                SellingWindow @relation(fields: [windowId], references: [id], onDelete: Cascade)
+  product               Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  priceKobo             Int
+  inventoryLimit        Int?
+  reservedQty           Int           @default(0)
+  soldQty               Int           @default(0)
+  maxPerCustomer        Int?
+  orderItems            OrderItem[]
+  @@unique([windowId, productId])
+  @@index([windowId])
+}
+
+model Order {
+  id                String             @id @default(cuid())
+  orderNumber       String             @unique
+  vendorId          String
+  windowId          String
+  customerUserId    String?
+  vendor            VendorProfile      @relation(fields: [vendorId], references: [id])
+  window            SellingWindow      @relation(fields: [windowId], references: [id])
+  customerUser      User?              @relation("CustomerOrders", fields: [customerUserId], references: [id])
+  customerName      String
+  customerPhone     String
+  customerEmail     String?
+  fulfillmentType   String
+  deliveryAddress   String?
+  subtotalKobo      Int
+  deliveryFeeKobo   Int                @default(0)
+  totalKobo         Int
+  status            OrderStatus        @default(RESERVED)
+  fulfillmentStatus FulfillmentStatus  @default(PENDING)
+  reservationExpiresAt DateTime?
+  paidAt            DateTime?
+  fulfilledAt       DateTime?
+  items             OrderItem[]
+  payments          Payment[]
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  @@index([windowId, status])
+  @@index([reservationExpiresAt, status])
+}
+
+model OrderItem {
+  id               String        @id @default(cuid())
+  orderId          String
+  windowProductId  String
+  order            Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  windowProduct    WindowProduct @relation(fields: [windowProductId], references: [id])
+  productName      String
+  unitPriceKobo    Int
+  quantity         Int
+  lineTotalKobo    Int
+}
+
+model Payment {
+  id                String        @id @default(cuid())
+  orderId           String
+  order             Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  provider          String        @default("paystack")
+  providerReference String        @unique
+  amountKobo        Int
+  status            PaymentStatus @default(PENDING)
+  rawPayload         Json?
+  processedAt        DateTime?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+}

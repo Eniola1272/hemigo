@@ -1,0 +1,1 @@
+export default function Loading(){return <div className="grid min-h-screen place-items-center bg-slate-50"><div className="text-center"><div className="mx-auto size-10 animate-spin rounded-full border-4 border-indigo-100 border-t-indigo-700"/><p className="mt-4 text-sm font-semibold text-slate-500">Getting things ready…</p></div></div>}

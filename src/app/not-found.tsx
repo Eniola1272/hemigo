@@ -1,0 +1,2 @@
+import { Button } from "@/components/ui/button";
+export default function NotFound(){return <main className="grid min-h-screen place-items-center bg-slate-50 px-4 text-center"><div><p className="text-7xl font-bold text-indigo-200">404</p><h1 className="mt-4 text-3xl font-bold">This batch isn&apos;t here.</h1><p className="mt-3 text-slate-500">It may have moved, closed, or never existed.</p><Button href="/" className="mt-7">Back to Hemigo</Button></div></main>}
