@@ -1,11 +1,17 @@
-import { createHash, randomBytes } from "node:crypto";
+import { createHmac, randomBytes } from "node:crypto";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { SESSION_COOKIE, SESSION_TTL_SECONDS } from "./constants";
 
 export function hashToken(token: string) {
-  return createHash("sha256").update(token).digest("hex");
+  const secret = process.env.AUTH_SECRET;
+  if (process.env.NODE_ENV === "production" && (!secret || secret.length < 32)) {
+    throw new Error("AUTH_SECRET must contain at least 32 characters in production.");
+  }
+  return createHmac("sha256", secret || "hemigo-local-development-only")
+    .update(token)
+    .digest("hex");
 }
 
 export async function createSession(userId: string) {

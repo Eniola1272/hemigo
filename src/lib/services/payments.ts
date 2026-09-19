@@ -4,10 +4,13 @@ type PaystackInit = { authorization_url: string; access_code: string; reference:
 
 export async function initializePaystackPayment(orderId: string) {
   const secret = process.env.PAYSTACK_SECRET_KEY;
+  const useLocalMock =
+    process.env.NODE_ENV !== "production" &&
+    (process.env.PAYSTACK_MOCK_MODE === "true" || !secret);
   const order = await db.order.findUnique({ where: { id: orderId }, include: { vendor: true } });
   if (!order || order.status !== "RESERVED" || !order.customerEmail || order.reservationExpiresAt && order.reservationExpiresAt <= new Date()) throw new Error("This order can no longer be paid.");
   const reference = `pay_${order.orderNumber}_${Date.now()}`;
-  if (!secret && process.env.NODE_ENV !== "production") {
+  if (useLocalMock) {
     await db.payment.create({ data: { orderId: order.id, provider: "local-mock", providerReference: reference, amountKobo: order.totalKobo } });
     await finalizeSuccessfulPayment(reference, { localMock: true }, order.totalKobo);
     return { authorization_url: `/order/${order.publicToken}/success`, access_code: "local", reference };
@@ -25,9 +28,34 @@ export async function finalizeSuccessfulPayment(reference: string, payload: obje
     const payment = await tx.payment.findUnique({ where: { providerReference: reference }, include: { order: { include: { items: true } } } });
     if (!payment) throw new Error("Payment reference not found.");
     if (payment.amountKobo !== reportedAmountKobo || payment.order.totalKobo !== reportedAmountKobo) throw new Error("Payment amount does not match the order total.");
-    const claimed = await tx.payment.updateMany({ where: { id: payment.id, status: "PENDING" }, data: { status: "SUCCESS", processedAt: new Date(), rawPayload: payload } });
-    if (!claimed.count) return payment.order;
+    await tx.payment.updateMany({ where: { id: payment.id, status: "PENDING" }, data: { status: "SUCCESS", processedAt: new Date(), rawPayload: payload } });
+    const claimedOrder = await tx.order.updateMany({
+      where: { id: payment.order.id, status: "RESERVED" },
+      data: { status: "PAID", paidAt: new Date(), reservationExpiresAt: null },
+    });
+    if (!claimedOrder.count) {
+      return tx.order.findUniqueOrThrow({ where: { id: payment.order.id } });
+    }
+    const configuredFee = Number(process.env.PLATFORM_FEE_PERCENT ?? "4");
+    const platformFeePercent = Number.isFinite(configuredFee)
+      ? Math.min(100, Math.max(0, configuredFee))
+      : 4;
+    const platformFeeKobo = Math.round(reportedAmountKobo * platformFeePercent / 100);
+    const isLocalMock = payment.provider === "local-mock";
+    await tx.settlement.upsert({
+      where: { providerReference: reference },
+      create: {
+        vendorId: payment.order.vendorId,
+        providerReference: reference,
+        grossKobo: reportedAmountKobo,
+        platformFeeKobo,
+        netKobo: reportedAmountKobo - platformFeeKobo,
+        status: isLocalMock ? "PAID" : "PROCESSING",
+        settledAt: isLocalMock ? new Date() : null,
+      },
+      update: {},
+    });
     for (const item of payment.order.items) await tx.windowProduct.update({ where: { id: item.windowProductId }, data: { reservedQty: { decrement: item.quantity }, soldQty: { increment: item.quantity } } });
-    return tx.order.update({ where: { id: payment.order.id }, data: { status: "PAID", paidAt: new Date(), reservationExpiresAt: null } });
+    return tx.order.findUniqueOrThrow({ where: { id: payment.order.id } });
   });
 }

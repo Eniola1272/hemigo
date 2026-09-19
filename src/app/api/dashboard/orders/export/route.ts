@@ -1,0 +1,4 @@
+import { requireVendor } from "@/lib/auth/session";
+import { db } from "@/lib/db";
+const csv=(value:unknown)=>`"${String(value??"").replaceAll('"','""')}"`;
+export async function GET(){const{vendor}=await requireVendor();const orders=await db.order.findMany({where:{vendorId:vendor.id},include:{window:true,items:true},orderBy:{createdAt:"desc"}});const rows:[[string,...string[]],...Array<Array<string|number>>]=[["Order","Customer","Phone","Window","Items","Amount (kobo)","Payment","Fulfillment","Created"],...orders.map(order=>[order.orderNumber,order.customerName,order.customerPhone,order.window.name,order.items.map(i=>`${i.productName} x${i.quantity}`).join("; "),order.totalKobo,order.status,order.fulfillmentStatus,order.createdAt.toISOString()])];return new Response(rows.map(row=>row.map(csv).join(",")).join("\n"),{headers:{"Content-Type":"text/csv; charset=utf-8","Content-Disposition":`attachment; filename="${vendor.slug}-orders.csv"`}})}

@@ -40,7 +40,7 @@ The simplest description of Hemigo is:
 
 Alternative internal positioning:
 
-> Scheduled commerce for modern African sellers.
+> Scheduled commerce for multiple order fulfillments.
 
 The product should especially appeal to:
 

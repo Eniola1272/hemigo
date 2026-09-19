@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth/session";
 import { onboardingSchema } from "@/lib/validation/vendor";
+import { createVendorSubaccount } from "@/lib/services/paystack-vendors";
 
 export async function POST(request: Request) {
   const user = await requireUser();
@@ -16,5 +17,7 @@ export async function POST(request: Request) {
     await tx.vendorMember.upsert({ where: { userId_vendorId: { userId: user.id, vendorId: profile.id } }, update: { role: "OWNER" }, create: { userId: user.id, vendorId: profile.id, role: "OWNER" } });
     return profile;
   });
-  return NextResponse.json({ vendor: { id: vendor.id, slug: vendor.slug } }, { status: 201 });
+  let payoutWarning:string|undefined;
+  if(process.env.PAYSTACK_SECRET_KEY)try{await createVendorSubaccount(vendor.id)}catch(error){payoutWarning=error instanceof Error?error.message:"Payout setup needs attention."}
+  return NextResponse.json({ vendor: { id: vendor.id, slug: vendor.slug }, payoutWarning }, { status: 201 });
 }
