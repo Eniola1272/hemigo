@@ -34,19 +34,19 @@ Generate independent secrets with:
 openssl rand -base64 48
 ```
 
-| Variable | Required in production | Purpose |
-| --- | --- | --- |
-| `DATABASE_URL` | Yes | PostgreSQL connection string. Use SSL parameters required by the provider. |
-| `AUTH_SECRET` | Yes | HMAC key for stored session and recovery-token hashes; use at least 32 random characters. |
-| `CRON_SECRET` | Yes | Bearer token for the maintenance endpoint. |
-| `NEXT_PUBLIC_APP_URL` | Yes | Canonical HTTPS origin, without a trailing slash. Used in email and Paystack callbacks. |
-| `PAYSTACK_SECRET_KEY` | Yes | Paystack secret key used only by the server. Start with a test key. |
-| `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY` | Optional | Reserved for a future inline Paystack flow; checkout currently redirects through the server-created authorization URL. |
-| `PLATFORM_FEE_PERCENT` | Yes | Platform share recorded in the settlement ledger and configured on vendor subaccounts. Defaults to `4`. |
-| `EMAIL_PROVIDER_API_KEY` | Yes | Resend API key for verification and password-reset email. |
-| `EMAIL_FROM` | Yes | Verified sender, for example `Hemigo <hello@hemigo.ng>`. |
-| `PAYSTACK_MOCK_MODE` | No | Local/test-only payment finalization. It is ignored in production. |
-| `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | Local Docker only | Credentials used by `compose.yaml`; they must match the local `DATABASE_URL`. |
+| Variable                                            | Required in production | Purpose                                                                                                                |
+| --------------------------------------------------- | ---------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`                                      | Yes                    | PostgreSQL connection string. Use SSL parameters required by the provider.                                             |
+| `AUTH_SECRET`                                       | Yes                    | HMAC key for stored session and recovery-token hashes; use at least 32 random characters.                              |
+| `CRON_SECRET`                                       | Yes                    | Bearer token for the maintenance endpoint.                                                                             |
+| `NEXT_PUBLIC_APP_URL`                               | Yes                    | Canonical HTTPS origin, without a trailing slash. Used in email and Paystack callbacks.                                |
+| `PAYSTACK_SECRET_KEY`                               | Yes                    | Paystack secret key used only by the server. Start with a test key.                                                    |
+| `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY`                   | Optional               | Reserved for a future inline Paystack flow; checkout currently redirects through the server-created authorization URL. |
+| `PLATFORM_FEE_PERCENT`                              | Yes                    | Platform share recorded in the settlement ledger and configured on vendor subaccounts. Defaults to `4`.                |
+| `EMAIL_PROVIDER_API_KEY`                            | Yes                    | Resend API key for verification and password-reset email.                                                              |
+| `EMAIL_FROM`                                        | Yes                    | Verified sender, for example `Hemigo <hello@hemigo.ng>`.                                                               |
+| `PAYSTACK_MOCK_MODE`                                | No                     | Local/test-only payment finalization. It is ignored in production.                                                     |
+| `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | Local Docker only      | Credentials used by `compose.yaml`; they must match the local `DATABASE_URL`.                                          |
 
 Changing `AUTH_SECRET` invalidates existing sessions and outstanding email/reset links.
 
