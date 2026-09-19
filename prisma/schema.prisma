@@ -51,20 +51,70 @@ enum SettlementStatus {
   FAILED
 }
 
+enum ProductType {
+  PHYSICAL
+  FOOD
+  DIGITAL
+  TICKET
+  SERVICE
+}
+
+enum SellingMode {
+  LAUNCH
+  SHOP
+}
+
+enum LocationVisibility {
+  PUBLIC
+  GENERAL_AREA
+  AFTER_PAYMENT
+}
+
+enum InvoiceStatus {
+  UNPAID
+  PAID
+  EXPIRED
+  VOID
+}
+
+enum CopywritingRequestStatus {
+  REQUESTED
+  IN_REVIEW
+  DELIVERED
+  CANCELLED
+}
+
+enum TicketStatus {
+  VALID
+  CHECKED_IN
+  VOID
+}
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELLED
+}
+
 model User {
-  id           String          @id @default(cuid())
-  email        String          @unique
-  passwordHash String
-  name         String?
-  emailVerifiedAt DateTime?
-  vendors      VendorProfile[]
-  memberships  VendorMember[]
-  sessions     Session[]
-  emailVerificationTokens EmailVerificationToken[]
-  passwordResetTokens PasswordResetToken[]
-  orders       Order[]         @relation("CustomerOrders")
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
+  id                       String                    @id @default(cuid())
+  email                    String                    @unique
+  passwordHash             String
+  name                     String?
+  emailVerifiedAt          DateTime?
+  vendors                  VendorProfile[]
+  memberships              VendorMember[]
+  sessions                 Session[]
+  emailVerificationTokens  EmailVerificationToken[]
+  passwordResetTokens      PasswordResetToken[]
+  orders                   Order[]                   @relation("CustomerOrders")
+  conversationParticipants ConversationParticipant[]
+  messages                 Message[]
+  invoices                 Invoice[]                 @relation("CustomerInvoices")
+  oauthAccounts            OAuthAccount[]
+  createdAt                DateTime                  @default(now())
+  updatedAt                DateTime                  @updatedAt
 }
 
 model Session {
@@ -76,6 +126,7 @@ model Session {
   userAgent String?
   ipAddress String?
   createdAt DateTime @default(now())
+
   @@index([userId])
   @@index([expiresAt])
 }
@@ -87,6 +138,7 @@ model EmailVerificationToken {
   tokenHash String   @unique
   expiresAt DateTime
   createdAt DateTime @default(now())
+
   @@index([userId])
 }
 
@@ -97,6 +149,7 @@ model PasswordResetToken {
   tokenHash String   @unique
   expiresAt DateTime
   createdAt DateTime @default(now())
+
   @@index([userId])
 }
 
@@ -105,36 +158,45 @@ model AuthRateLimit {
   count       Int      @default(0)
   windowStart DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
   @@index([windowStart])
 }
 
 model VendorProfile {
-  id                      String          @id @default(cuid())
+  id                      String               @id @default(cuid())
   ownerId                 String
-  owner                   User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  owner                   User                 @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   name                    String
-  slug                    String          @unique
+  slug                    String               @unique
   category                String
   phone                   String
   whatsapp                String?
   contactEmail            String?
   location                String?
+  publicLocation          String?
+  fulfillmentInstructions String?
+  locationVisibility      LocationVisibility   @default(GENERAL_AREA)
   paystackSubaccountCode  String?
-  onboardingCompleted     Boolean         @default(false)
-  deliveryEnabled        Boolean         @default(true)
-  pickupEnabled          Boolean         @default(true)
-  deliveryFeeKobo        Int             @default(50000)
-  bankName               String?
-  bankCode               String?
-  accountNumber          String?
-  accountName            String?
+  onboardingCompleted     Boolean              @default(false)
+  deliveryEnabled         Boolean              @default(true)
+  pickupEnabled           Boolean              @default(true)
+  deliveryFeeKobo         Int                  @default(50000)
+  bankName                String?
+  bankCode                String?
+  accountNumber           String?
+  accountName             String?
   members                 VendorMember[]
   products                Product[]
   windows                 SellingWindow[]
   orders                  Order[]
   settlements             Settlement[]
-  createdAt               DateTime        @default(now())
-  updatedAt               DateTime        @updatedAt
+  conversations           Conversation[]
+  invoices                Invoice[]
+  copywritingRequests     CopywritingRequest[]
+  events                  Event[]
+  subscription            VendorSubscription?
+  createdAt               DateTime             @default(now())
+  updatedAt               DateTime             @updatedAt
 }
 
 model VendorMember {
@@ -145,104 +207,126 @@ model VendorMember {
   user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   vendor    VendorProfile @relation(fields: [vendorId], references: [id], onDelete: Cascade)
   createdAt DateTime      @default(now())
+
   @@unique([userId, vendorId])
   @@index([vendorId])
 }
 
 model Product {
-  id           String          @id @default(cuid())
-  vendorId     String
-  vendor       VendorProfile   @relation(fields: [vendorId], references: [id], onDelete: Cascade)
-  name         String
-  slug         String
-  description  String
-  imageUrl     String?
-  defaultPrice Int
-  active       Boolean         @default(true)
-  windowItems  WindowProduct[]
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
+  id                     String          @id @default(cuid())
+  vendorId               String
+  vendor                 VendorProfile   @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  name                   String
+  slug                   String
+  description            String
+  type                   ProductType     @default(PHYSICAL)
+  imageUrl               String?
+  fulfillmentUrl         String?
+  serviceDurationMinutes Int?
+  eventId                String?
+  event                  Event?          @relation(fields: [eventId], references: [id], onDelete: SetNull)
+  defaultPrice           Int
+  active                 Boolean         @default(true)
+  windowItems            WindowProduct[]
+  conversations          Conversation[]
+  createdAt              DateTime        @default(now())
+  updatedAt              DateTime        @updatedAt
+
   @@unique([vendorId, slug])
+  @@index([eventId])
 }
 
 model SellingWindow {
-  id              String            @id @default(cuid())
-  vendorId        String
-  vendor          VendorProfile     @relation(fields: [vendorId], references: [id], onDelete: Cascade)
-  name            String
-  slug            String
-  description     String?
-  headline        String?
-  opensAt         DateTime
-  closesAt        DateTime
-  fulfillmentAt   DateTime?
-  status          WindowStatus      @default(DRAFT)
-  theme           StorefrontTheme   @default(CLASSIC)
-  windowProducts  WindowProduct[]
-  orders          Order[]
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
+  id                       String               @id @default(cuid())
+  vendorId                 String
+  vendor                   VendorProfile        @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  name                     String
+  slug                     String
+  description              String?
+  headline                 String?
+  mode                     SellingMode          @default(LAUNCH)
+  opensAt                  DateTime?
+  closesAt                 DateTime?
+  fulfillmentAt            DateTime?
+  allowPayLater            Boolean              @default(false)
+  invoiceHoldMinutes       Int                  @default(120)
+  invoiceReservesInventory Boolean              @default(true)
+  status                   WindowStatus         @default(DRAFT)
+  theme                    StorefrontTheme      @default(CLASSIC)
+  windowProducts           WindowProduct[]
+  orders                   Order[]
+  conversations            Conversation[]
+  copywritingRequests      CopywritingRequest[]
+  createdAt                DateTime             @default(now())
+  updatedAt                DateTime             @updatedAt
+
   @@unique([vendorId, slug])
   @@index([status, opensAt, closesAt])
 }
 
 model WindowProduct {
-  id                   String        @id @default(cuid())
-  windowId             String
-  productId            String
-  window                SellingWindow @relation(fields: [windowId], references: [id], onDelete: Cascade)
-  product               Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
-  priceKobo             Int
-  inventoryLimit        Int?
-  reservedQty           Int           @default(0)
-  soldQty               Int           @default(0)
-  maxPerCustomer        Int?
-  orderItems            OrderItem[]
+  id             String        @id @default(cuid())
+  windowId       String
+  productId      String
+  window         SellingWindow @relation(fields: [windowId], references: [id], onDelete: Cascade)
+  product        Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  priceKobo      Int
+  inventoryLimit Int?
+  reservedQty    Int           @default(0)
+  soldQty        Int           @default(0)
+  maxPerCustomer Int?
+  orderItems     OrderItem[]
+
   @@unique([windowId, productId])
   @@index([windowId])
 }
 
 model Order {
-  id                String             @id @default(cuid())
-  orderNumber       String             @unique
-  publicToken       String             @unique
-  vendorId          String
-  windowId          String
-  customerUserId    String?
-  vendor            VendorProfile      @relation(fields: [vendorId], references: [id])
-  window            SellingWindow      @relation(fields: [windowId], references: [id])
-  customerUser      User?              @relation("CustomerOrders", fields: [customerUserId], references: [id])
-  customerName      String
-  customerPhone     String
-  customerEmail     String?
-  fulfillmentType   String
-  deliveryAddress   String?
-  subtotalKobo      Int
-  deliveryFeeKobo   Int                @default(0)
-  totalKobo         Int
-  status            OrderStatus        @default(RESERVED)
-  fulfillmentStatus FulfillmentStatus  @default(PENDING)
+  id                   String            @id @default(cuid())
+  orderNumber          String            @unique
+  publicToken          String            @unique
+  vendorId             String
+  windowId             String
+  customerUserId       String?
+  vendor               VendorProfile     @relation(fields: [vendorId], references: [id])
+  window               SellingWindow     @relation(fields: [windowId], references: [id])
+  customerUser         User?             @relation("CustomerOrders", fields: [customerUserId], references: [id])
+  customerName         String
+  customerPhone        String
+  customerEmail        String?
+  fulfillmentType      String
+  deliveryAddress      String?
+  subtotalKobo         Int
+  deliveryFeeKobo      Int               @default(0)
+  totalKobo            Int
+  status               OrderStatus       @default(RESERVED)
+  fulfillmentStatus    FulfillmentStatus @default(PENDING)
+  inventoryReserved    Boolean           @default(true)
   reservationExpiresAt DateTime?
-  paidAt            DateTime?
-  fulfilledAt       DateTime?
-  items             OrderItem[]
-  payments          Payment[]
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
+  paidAt               DateTime?
+  fulfilledAt          DateTime?
+  items                OrderItem[]
+  payments             Payment[]
+  invoice              Invoice?
+  conversations        Conversation[]
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+
   @@index([windowId, status])
   @@index([reservationExpiresAt, status])
 }
 
 model OrderItem {
-  id               String        @id @default(cuid())
-  orderId          String
-  windowProductId  String
-  order            Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  windowProduct    WindowProduct @relation(fields: [windowProductId], references: [id])
-  productName      String
-  unitPriceKobo    Int
-  quantity         Int
-  lineTotalKobo    Int
+  id              String        @id @default(cuid())
+  orderId         String
+  windowProductId String
+  order           Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  windowProduct   WindowProduct @relation(fields: [windowProductId], references: [id])
+  productName     String
+  unitPriceKobo   Int
+  quantity        Int
+  lineTotalKobo   Int
+  tickets         Ticket[]
 }
 
 model Payment {
@@ -253,21 +337,21 @@ model Payment {
   providerReference String        @unique
   amountKobo        Int
   status            PaymentStatus @default(PENDING)
-  rawPayload         Json?
-  processedAt        DateTime?
-  createdAt          DateTime      @default(now())
-  updatedAt          DateTime      @updatedAt
+  rawPayload        Json?
+  processedAt       DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
 }
 
 model WebhookEvent {
-  id         String   @id @default(cuid())
-  provider   String   @default("paystack")
-  eventKey   String   @unique
-  eventType  String
-  payload    Json
-  processed  Boolean  @default(false)
-  error      String?
-  receivedAt DateTime @default(now())
+  id          String    @id @default(cuid())
+  provider    String    @default("paystack")
+  eventKey    String    @unique
+  eventType   String
+  payload     Json
+  processed   Boolean   @default(false)
+  error       String?
+  receivedAt  DateTime  @default(now())
   processedAt DateTime?
 }
 
@@ -284,5 +368,173 @@ model Settlement {
   settledAt         DateTime?
   createdAt         DateTime         @default(now())
   updatedAt         DateTime         @updatedAt
+
   @@index([vendorId, status])
+}
+
+model Invoice {
+  id             String         @id @default(cuid())
+  invoiceNumber  String         @unique
+  publicToken    String         @unique
+  orderId        String         @unique
+  order          Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  vendorId       String
+  vendor         VendorProfile  @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  customerUserId String?
+  customerUser   User?          @relation("CustomerInvoices", fields: [customerUserId], references: [id], onDelete: SetNull)
+  amountKobo     Int
+  status         InvoiceStatus  @default(UNPAID)
+  dueAt          DateTime
+  paidAt         DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  conversations  Conversation[]
+
+  @@index([vendorId, status])
+  @@index([customerUserId, status])
+}
+
+model Conversation {
+  id           String                    @id @default(cuid())
+  vendorId     String
+  vendor       VendorProfile             @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  subject      String
+  orderId      String?
+  order        Order?                    @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  windowId     String?
+  window       SellingWindow?            @relation(fields: [windowId], references: [id], onDelete: SetNull)
+  productId    String?
+  product      Product?                  @relation(fields: [productId], references: [id], onDelete: SetNull)
+  invoiceId    String?
+  invoice      Invoice?                  @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  participants ConversationParticipant[]
+  messages     Message[]
+  createdAt    DateTime                  @default(now())
+  updatedAt    DateTime                  @updatedAt
+
+  @@index([vendorId, updatedAt])
+  @@index([orderId])
+  @@index([windowId])
+  @@index([productId])
+  @@index([invoiceId])
+}
+
+model ConversationParticipant {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lastReadAt     DateTime?
+  createdAt      DateTime     @default(now())
+
+  @@unique([conversationId, userId])
+  @@index([userId])
+}
+
+model Message {
+  id             String              @id @default(cuid())
+  conversationId String
+  conversation   Conversation        @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String
+  sender         User                @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  body           String
+  attachments    MessageAttachment[]
+  createdAt      DateTime            @default(now())
+
+  @@index([conversationId, createdAt])
+}
+
+model MessageAttachment {
+  id        String   @id @default(cuid())
+  messageId String
+  message   Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  url       String
+  fileName  String
+  mimeType  String
+  sizeBytes Int?
+  createdAt DateTime @default(now())
+
+  @@index([messageId])
+}
+
+model CopywritingRequest {
+  id           String                   @id @default(cuid())
+  vendorId     String
+  vendor       VendorProfile            @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  windowId     String?
+  window       SellingWindow?           @relation(fields: [windowId], references: [id], onDelete: SetNull)
+  audience     String
+  tone         String
+  notes        String?
+  status       CopywritingRequestStatus @default(REQUESTED)
+  isFree       Boolean                  @default(false)
+  deliverables Json?
+  createdAt    DateTime                 @default(now())
+  updatedAt    DateTime                 @updatedAt
+
+  @@index([vendorId, status])
+  @@index([windowId])
+}
+
+model OAuthAccount {
+  id                String   @id @default(cuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider          String
+  providerAccountId String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([provider, providerAccountId])
+  @@unique([provider, userId])
+  @@index([userId])
+}
+
+model Event {
+  id        String        @id @default(cuid())
+  vendorId  String
+  vendor    VendorProfile @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  name      String
+  slug      String
+  startsAt  DateTime
+  venue     String
+  capacity  Int
+  products  Product[]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@unique([vendorId, slug])
+  @@index([vendorId, startsAt])
+}
+
+model Ticket {
+  id           String       @id @default(cuid())
+  ticketNumber String       @unique
+  publicToken  String       @unique
+  orderItemId  String
+  orderItem    OrderItem    @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  status       TicketStatus @default(VALID)
+  checkedInAt  DateTime?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@index([orderItemId, status])
+}
+
+model VendorSubscription {
+  id                       String             @id @default(cuid())
+  vendorId                 String             @unique
+  vendor                   VendorProfile      @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  status                   SubscriptionStatus @default(TRIALING)
+  amountKobo               Int                @default(100000)
+  trialEndsAt              DateTime
+  currentPeriodEnd         DateTime?
+  providerSubscriptionCode String?            @unique
+  providerEmailToken       String?
+  pendingReference         String?            @unique
+  createdAt                DateTime           @default(now())
+  updatedAt                DateTime           @updatedAt
+
+  @@index([status, trialEndsAt])
 }

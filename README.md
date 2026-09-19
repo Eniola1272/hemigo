@@ -1,8 +1,8 @@
 # Hemigo
 
-Hemigo is a batch-selling storefront for Nigerian small businesses. Vendors create products, publish timed selling windows, accept Paystack payments, manage fulfillment, and track settlement records from one dashboard.
+Hemigo is a commerce platform for Nigerian small businesses. Vendors can run timed launches or always-open shops, sell physical goods, food, digital products, services, and event tickets, accept Paystack payments or issue pay-later invoices, and manage fulfillment from one dashboard.
 
-The application uses Next.js 15, React 19, TypeScript, Prisma 6, PostgreSQL, and Paystack. Authentication, products, windows, carts, inventory reservations, orders, payment finalization, fulfillment, customers, settings, CSV exports, and payout onboarding all use PostgreSQL-backed data.
+The application uses Next.js 15, React 19, TypeScript, Prisma 6, PostgreSQL, and Paystack. Authentication, marketplace discovery, products, launches/shops, carts, inventory reservations, orders, invoices, receipts, event tickets, QR check-in, customer/vendor messages, subscriptions, fulfillment, customers, settings, CSV exports, and payout onboarding all use PostgreSQL-backed data.
 
 ## Local development
 
@@ -41,10 +41,12 @@ openssl rand -base64 48
 | `CRON_SECRET`                                       | Yes                    | Bearer token for the maintenance endpoint.                                                                             |
 | `NEXT_PUBLIC_APP_URL`                               | Yes                    | Canonical HTTPS origin, without a trailing slash. Used in email and Paystack callbacks.                                |
 | `PAYSTACK_SECRET_KEY`                               | Yes                    | Paystack secret key used only by the server. Start with a test key.                                                    |
+| `PAYSTACK_VENDOR_PLAN_CODE`                         | Yes                    | Paystack recurring-plan code for the ₦1,000/month vendor subscription.                                                |
 | `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY`                   | Optional               | Reserved for a future inline Paystack flow; checkout currently redirects through the server-created authorization URL. |
 | `PLATFORM_FEE_PERCENT`                              | Yes                    | Platform share recorded in the settlement ledger and configured on vendor subaccounts. Defaults to `4`.                |
 | `EMAIL_PROVIDER_API_KEY`                            | Yes                    | Resend API key for verification and password-reset email.                                                              |
 | `EMAIL_FROM`                                        | Yes                    | Verified sender, for example `Hemigo <hello@hemigo.ng>`.                                                               |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`          | Optional               | Google OAuth web-app credentials. Required when Google sign-in is enabled.                                             |
 | `PAYSTACK_MOCK_MODE`                                | No                     | Local/test-only payment finalization. It is ignored in production.                                                     |
 | `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | Local Docker only      | Credentials used by `compose.yaml`; they must match the local `DATABASE_URL`.                                          |
 
@@ -73,9 +75,24 @@ Use a managed PostgreSQL service with automated backups, point-in-time recovery,
 2. Configure this webhook URL in Paystack: `https://YOUR_DOMAIN/api/webhooks/paystack`.
 3. Paystack webhook signatures are verified against the raw request body. Events are persisted and processed idempotently.
 4. Vendors enter their bank and account number during onboarding or on the Payouts page. Hemigo resolves the account and creates a Paystack subaccount.
-5. Move to live keys only after the domain, HTTPS, email, webhook, settlement calculation, refunds, and support process have been verified.
+5. Create a recurring ₦1,000/month plan and set its code as `PAYSTACK_VENDOR_PLAN_CODE`. The subscription uses the same signed webhook endpoint for activation, renewal failure, and cancellation events.
+6. Move to live keys only after the domain, HTTPS, email, webhook, settlement calculation, refunds, subscriptions, and support process have been verified.
 
 The local mock is explicit. To test the complete paid-order path without contacting Paystack, start the development server with `PAYSTACK_MOCK_MODE=true`. The application refuses mock payments in production regardless of that variable.
+
+## Google sign-in
+
+Create an OAuth 2.0 Web application in Google Cloud, then add this exact authorized redirect URI:
+
+```text
+https://YOUR_DOMAIN/api/auth/google/callback
+```
+
+For local development, also add `http://localhost:3000/api/auth/google/callback`. Set `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and make sure `NEXT_PUBLIC_APP_URL` exactly matches the origin being used. The implementation uses OAuth state protection and PKCE, links users by Google subject, and only accepts Google-verified email addresses.
+
+## Tickets and check-in
+
+Create an event in **Dashboard → Events**, then create a ticket-type product linked to it and add that product to a launch or shop. A successful payment issues one unique QR ticket per unit. The event check-in screen can scan through the browser when `BarcodeDetector` and camera access are available, and always includes a manual token/URL fallback. Production camera access requires HTTPS.
 
 ## Scheduled maintenance
 
@@ -108,14 +125,17 @@ PAYSTACK_MOCK_MODE=true npm run dev -- --port 3100
 npm run test:e2e
 ```
 
-The smoke test logs in, creates a product and selling window, opens the public storefront, reserves stock, finalizes payment, verifies the paid order, and removes its test records.
+The smoke test covers login, product types, timed launches, always-open shops, pay-now and pay-later checkout, invoices, receipts, messages, copywriting requests, event ticket issuance, duplicate-safe check-in, and local subscription activation. It removes its own test records and restores any pre-existing subscription state.
 
 ## Production checklist
 
 - Provision managed PostgreSQL and run `npm run db:deploy`.
 - Set all required environment variables in both staging and production.
 - Verify the sender domain in Resend and test verification/reset email delivery.
+- Configure Google OAuth production origins and callback URLs, then test new-account and existing-email account linking.
 - Configure the Paystack webhook and complete test-mode success, duplicate-webhook, abandoned-payment, and amount-mismatch checks.
+- Configure the Paystack recurring vendor plan and test activation, renewal, failed renewal, cancellation, and webhook retries.
+- Test event capacity under concurrent checkout, QR delivery, valid check-in, duplicate check-in, and the manual fallback on real devices.
 - Schedule the maintenance endpoint and alert on non-2xx responses.
 - Point the custom domain to the host, force HTTPS, and set `NEXT_PUBLIC_APP_URL` to the exact production origin.
 - Configure database backups, uptime monitoring for `/api/health`, application error reporting, and log retention with secrets/PII redaction.

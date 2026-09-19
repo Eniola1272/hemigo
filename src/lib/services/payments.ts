@@ -1,8 +1,12 @@
 import { db } from "@/lib/db";
+import { sendOrderReceiptEmail } from "@/lib/email";
+import { randomBytes } from "node:crypto";
+import { reserveInventoryBeforePayment } from "@/lib/services/inventory";
 
 type PaystackInit = { authorization_url: string; access_code: string; reference: string };
 
 export async function initializePaystackPayment(orderId: string) {
+  await reserveInventoryBeforePayment(orderId);
   const secret = process.env.PAYSTACK_SECRET_KEY;
   const useLocalMock =
     process.env.NODE_ENV !== "production" &&
@@ -12,7 +16,8 @@ export async function initializePaystackPayment(orderId: string) {
   const reference = `pay_${order.orderNumber}_${Date.now()}`;
   if (useLocalMock) {
     await db.payment.create({ data: { orderId: order.id, provider: "local-mock", providerReference: reference, amountKobo: order.totalKobo } });
-    await finalizeSuccessfulPayment(reference, { localMock: true }, order.totalKobo);
+    const paidOrder=await finalizeSuccessfulPayment(reference, { localMock: true }, order.totalKobo);
+    try{await sendOrderReceiptEmail(paidOrder)}catch(error){console.error("Receipt email failed",error)}
     return { authorization_url: `/order/${order.publicToken}/success`, access_code: "local", reference };
   }
   if (!secret) throw new Error("Paystack is not configured.");
@@ -25,7 +30,7 @@ export async function initializePaystackPayment(orderId: string) {
 
 export async function finalizeSuccessfulPayment(reference: string, payload: object, reportedAmountKobo: number) {
   return db.$transaction(async (tx) => {
-    const payment = await tx.payment.findUnique({ where: { providerReference: reference }, include: { order: { include: { items: true } } } });
+    const payment = await tx.payment.findUnique({ where: { providerReference: reference }, include: { order: { include: { items: { include: { windowProduct: { include: { product: true } } } } } } } });
     if (!payment) throw new Error("Payment reference not found.");
     if (payment.amountKobo !== reportedAmountKobo || payment.order.totalKobo !== reportedAmountKobo) throw new Error("Payment amount does not match the order total.");
     await tx.payment.updateMany({ where: { id: payment.id, status: "PENDING" }, data: { status: "SUCCESS", processedAt: new Date(), rawPayload: payload } });
@@ -36,6 +41,7 @@ export async function finalizeSuccessfulPayment(reference: string, payload: obje
     if (!claimedOrder.count) {
       return tx.order.findUniqueOrThrow({ where: { id: payment.order.id } });
     }
+    await tx.invoice.updateMany({where:{orderId:payment.order.id,status:"UNPAID"},data:{status:"PAID",paidAt:new Date()}});
     const configuredFee = Number(process.env.PLATFORM_FEE_PERCENT ?? "4");
     const platformFeePercent = Number.isFinite(configuredFee)
       ? Math.min(100, Math.max(0, configuredFee))
@@ -56,6 +62,7 @@ export async function finalizeSuccessfulPayment(reference: string, payload: obje
       update: {},
     });
     for (const item of payment.order.items) await tx.windowProduct.update({ where: { id: item.windowProductId }, data: { reservedQty: { decrement: item.quantity }, soldQty: { increment: item.quantity } } });
+    for(const item of payment.order.items){if(item.windowProduct.product.type!=="TICKET")continue;await tx.ticket.createMany({data:Array.from({length:item.quantity},(_,index)=>({orderItemId:item.id,ticketNumber:`HG-${Date.now().toString().slice(-6)}-${index+1}-${randomBytes(2).toString("hex").toUpperCase()}`,publicToken:randomBytes(24).toString("base64url")}))})}
     return tx.order.findUniqueOrThrow({ where: { id: payment.order.id } });
   });
 }

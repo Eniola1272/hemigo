@@ -5,7 +5,8 @@ export const checkoutSchema = z.object({
   customerName: z.string().trim().min(2).max(100),
   customerPhone: z.string().trim().min(10).max(20),
   customerEmail: z.email().optional().or(z.literal("")),
-  fulfillmentType: z.enum(["Delivery", "Pickup"]),
+  fulfillmentType: z.enum(["Delivery", "Pickup", "Digital"]),
+  paymentMethod: z.enum(["PAY_NOW", "PAY_LATER"]).default("PAY_NOW"),
   deliveryAddress: z.string().trim().max(300).optional(),
   items: z.array(z.object({ windowProductId: z.string().min(1), quantity: z.number().int().positive().max(50) })).min(1).max(20),
 }).superRefine((value, ctx) => {

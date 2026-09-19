@@ -1,0 +1,7 @@
+"use client";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Field, Input, Textarea } from "@/components/ui/form-field";
+type Context={vendorId:string;subject:string;orderId?:string;windowId?:string;productId?:string;invoiceId?:string};
+export function StartConversation({context}:{context:Context}){const[busy,setBusy]=useState(false);const[error,setError]=useState("");const router=useRouter();async function submit(event:React.FormEvent<HTMLFormElement>){event.preventDefault();setBusy(true);const form=new FormData(event.currentTarget);const response=await fetch("/api/conversations",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({...context,subject:form.get("subject"),body:form.get("body")})});const result=await response.json();if(!response.ok){setError(result.error??"Could not send message.");setBusy(false);return}router.push(`/messages/${result.conversationId}`)}return <form onSubmit={submit} className="card p-6"><Field label="Subject"><Input name="subject" defaultValue={context.subject} required/></Field><div className="mt-5"><Field label="Message"><Textarea name="body" required placeholder="How can the seller help?"/></Field></div>{error&&<p className="mt-4 text-sm text-red-700">{error}</p>}<Button type="submit" disabled={busy} className="mt-5">{busy?"Sending…":"Start conversation"}</Button></form>}

@@ -4,6 +4,8 @@ import { HeroDemo } from "@/components/marketing/hero-demo";
 import { Button } from "@/components/ui/button";
 import { CommerceFlow } from "@/components/illustrations/commerce-flow";
 import { Logo } from "@/components/brand/logo";
+import { getCurrentUser } from "@/lib/auth/session";
+import { db } from "@/lib/db";
 
 const steps = [
   ["01", "Create your selling window", "Choose when orders open, when they close, and what you’re selling.", CalendarClock],
@@ -18,10 +20,12 @@ const uses = [
   ["Cakes", "Friday Cake Batch", "12 slots remaining", "bg-indigo-50 text-indigo-800"],
 ] as const;
 
-export default function Home() {
+export default async function Home() {
+  const currentUser=await getCurrentUser();
+  const hasVendor=currentUser?Boolean(await db.vendorMember.findFirst({where:{userId:currentUser.id},select:{id:true}})):false;
   return (
     <main className="overflow-hidden bg-white">
-      <Navbar />
+      <Navbar user={currentUser?{name:currentUser.name||currentUser.email,hasVendor}:null}/>
       <section className="relative px-0 pb-24 pt-20 sm:pt-28">
         <div className="absolute right-[-120px] top-24 -z-0 size-[360px] rounded-full bg-amber-100/70 blur-3xl" />
         <div className="container-shell relative z-10 text-center">
@@ -57,7 +61,7 @@ export default function Home() {
 
       <section id="uses" className="py-28"><div className="container-shell"><p className="eyebrow text-indigo-700">Made for many kinds of selling</p><h2 className="section-title balance mt-4 max-w-3xl">Food today. Fashion tomorrow. Hemigo fits the way you sell.</h2><div className="mt-14 grid gap-4 md:grid-cols-2 lg:grid-cols-4">{uses.map(([type,title,meta,theme])=><article key={type} className={`flex min-h-72 flex-col justify-between rounded-[18px] p-6 ${theme}`}><p className="eyebrow opacity-70">{type}</p><div><h3 className="text-2xl font-bold tracking-tight">{title}</h3><p className="mt-3 text-sm opacity-75">{meta}</p></div></article>)}</div></div></section>
 
-      <section id="pricing" className="pb-28"><div className="container-shell"><div className="relative overflow-hidden rounded-[24px] bg-indigo-700 px-7 py-16 text-center text-white sm:px-16 sm:py-20"><div className="absolute -left-14 -top-20 size-60 rounded-full border-[36px] border-white/10"/><p className="eyebrow text-indigo-200">Your next batch should be easier</p><h2 className="section-title balance mx-auto mt-4 max-w-3xl">Start with one window. Leave the order chaos behind.</h2><p className="mx-auto mt-5 max-w-xl text-indigo-100">Free to create your storefront. A simple fee applies only when you make a sale.</p><div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row"><Button href="/signup" tone="secondary" size="lg">Create your first Hemigo</Button><Button href="/login" tone="ghost" size="lg" className="text-white hover:bg-white/10">Log in</Button></div></div></div></section>
+      <section id="pricing" className="pb-28"><div className="container-shell"><div className="relative overflow-hidden rounded-[24px] bg-indigo-700 px-7 py-16 text-center text-white sm:px-16 sm:py-20"><div className="absolute -left-14 -top-20 size-60 rounded-full border-[36px] border-white/10"/><p className="eyebrow text-indigo-200">Simple pricing</p><h2 className="section-title balance mx-auto mt-4 max-w-3xl">Start selling free. Grow for ₦1,000/month.</h2><p className="mx-auto mt-5 max-w-xl text-indigo-100">Your first month is free. Then Hemigo Vendor is ₦1,000 monthly, plus a 4% commerce processing fee that includes payments, invoices, receipts and transaction management.</p><div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row"><Button href="/signup" tone="secondary" size="lg">Create your first Hemigo</Button><Button href="/login" tone="ghost" size="lg" className="text-white hover:bg-white/10">Log in</Button></div></div></div></section>
       <footer className="border-t border-slate-200 py-10"><div className="container-shell flex flex-col items-center justify-between gap-5 sm:flex-row"><Logo/><p className="text-sm text-slate-500">Scheduled commerce for multiple order fulfillment.</p><p className="text-sm text-slate-400">© 2026 Hemigo</p></div></footer>
     </main>
   );

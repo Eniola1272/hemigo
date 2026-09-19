@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { requireUser } from "@/lib/auth/session";
 import { onboardingSchema } from "@/lib/validation/vendor";
 import { createVendorSubaccount } from "@/lib/services/paystack-vendors";
+import { ensureVendorSubscription } from "@/lib/services/subscriptions";
 
 export async function POST(request: Request) {
   const user = await requireUser();
@@ -18,6 +19,7 @@ export async function POST(request: Request) {
     return profile;
   });
   let payoutWarning:string|undefined;
+  await ensureVendorSubscription(vendor.id,vendor.createdAt);
   if(process.env.PAYSTACK_SECRET_KEY)try{await createVendorSubaccount(vendor.id)}catch(error){payoutWarning=error instanceof Error?error.message:"Payout setup needs attention."}
   return NextResponse.json({ vendor: { id: vendor.id, slug: vendor.slug }, payoutWarning }, { status: 201 });
 }

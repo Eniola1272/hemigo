@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Order" ADD COLUMN     "inventoryReserved" BOOLEAN NOT NULL DEFAULT true;

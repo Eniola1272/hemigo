@@ -20,7 +20,7 @@ export async function POST(request: Request) {
   let slug = base; let suffix = 1;
   while (await db.sellingWindow.findUnique({ where: { vendorId_slug: { vendorId: vendor.id, slug } }, select: { id: true } })) slug = `${base}-${++suffix}`;
   const now = new Date();
-  const status = !parsed.data.publish ? "DRAFT" : parsed.data.opensAt > now ? "UPCOMING" : parsed.data.closesAt <= now ? "CLOSED" : "LIVE";
-  const window = await db.sellingWindow.create({ data: { vendorId: vendor.id, name: parsed.data.name, slug, description: parsed.data.description, headline: parsed.data.headline, opensAt: parsed.data.opensAt, closesAt: parsed.data.closesAt, fulfillmentAt: parsed.data.fulfillmentAt, theme: parsed.data.theme, status, windowProducts: { create: parsed.data.products.map((item) => ({ productId: item.productId, priceKobo: Math.round(item.priceNaira * 100), inventoryLimit: item.inventoryLimit, maxPerCustomer: item.maxPerCustomer })) } }, include: { windowProducts: true } });
-  return NextResponse.json({ window, shareUrl: `/${vendor.slug}/${window.slug}` }, { status: 201 });
+  const status = !parsed.data.publish ? "DRAFT" : parsed.data.mode === "SHOP" ? "LIVE" : parsed.data.opensAt! > now ? "UPCOMING" : parsed.data.closesAt! <= now ? "CLOSED" : "LIVE";
+  const window = await db.sellingWindow.create({ data: { vendorId: vendor.id, name: parsed.data.name, slug, description: parsed.data.description, headline: parsed.data.headline, mode: parsed.data.mode, opensAt: parsed.data.opensAt, closesAt: parsed.data.closesAt, fulfillmentAt: parsed.data.fulfillmentAt, allowPayLater: parsed.data.allowPayLater, invoiceHoldMinutes: parsed.data.invoiceHoldMinutes, invoiceReservesInventory: parsed.data.invoiceReservesInventory, theme: parsed.data.theme, status, windowProducts: { create: parsed.data.products.map((item) => ({ productId: item.productId, priceKobo: Math.round(item.priceNaira * 100), inventoryLimit: item.inventoryLimit, maxPerCustomer: item.maxPerCustomer })) } }, include: { windowProducts: true } });
+  return NextResponse.json({ window, shareUrl: window.mode === "SHOP" ? `/${vendor.slug}` : `/${vendor.slug}/${window.slug}` }, { status: 201 });
 }
