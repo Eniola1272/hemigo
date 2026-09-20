@@ -12,6 +12,7 @@ let vendorId;
 let subscriptionBefore;
 let conversationId;
 let copywritingRequestId;
+let contactInquiryId;
 
 async function request(path, options = {}) {
   const response = await fetch(base + path, options);
@@ -32,6 +33,28 @@ try {
   assert.ok(cookie, "Login must set a session cookie");
   const authHeaders = { "Content-Type": "application/json", Cookie: cookie, Origin: base };
   const marker = Date.now().toString();
+
+  assert.equal((await fetch(base + "/about")).status, 200);
+  assert.equal((await fetch(base + "/contact")).status, 200);
+  assert.equal((await fetch(base + "/robots.txt")).status, 200);
+  assert.equal((await fetch(base + "/sitemap.xml")).status, 200);
+  assert.equal((await fetch(base + "/manifest.webmanifest")).status, 200);
+  const contact = await request("/api/contact", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Origin: base },
+    body: JSON.stringify({
+      name: "SEO Smoke Test",
+      email: `contact-${marker}@example.com`,
+      topic: "General enquiry",
+      subject: "Contact workflow smoke test",
+      message: "This message verifies the persisted Hemigo contact workflow.",
+      website: "",
+    }),
+  });
+  assert.equal(contact.response.status, 201);
+  contactInquiryId = (await db.contactInquiry.findFirstOrThrow({
+    where: { email: `contact-${marker}@example.com` },
+  })).id;
 
   const createdProduct = await request("/api/dashboard/products", {
     method: "POST",
@@ -221,6 +244,7 @@ try {
 
   console.log("E2E PASS: auth → product types → launch/shop → pay now/invoice → receipts → messages → copywriting → tickets/check-in → subscriptions");
 } finally {
+  if (contactInquiryId) await db.contactInquiry.deleteMany({ where: { id: contactInquiryId } });
   if (copywritingRequestId) await db.copywritingRequest.deleteMany({ where: { id: copywritingRequestId } });
   if (conversationId) await db.conversation.deleteMany({ where: { id: conversationId } });
   if (paymentReferences.length) await db.settlement.deleteMany({ where: { providerReference: { in: paymentReferences } } });

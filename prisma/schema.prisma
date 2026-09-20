@@ -97,6 +97,13 @@ enum SubscriptionStatus {
   CANCELLED
 }
 
+enum ContactInquiryStatus {
+  NEW
+  IN_PROGRESS
+  RESOLVED
+  SPAM
+}
+
 model User {
   id                       String                    @id @default(cuid())
   email                    String                    @unique
@@ -537,4 +544,19 @@ model VendorSubscription {
   updatedAt                DateTime           @updatedAt
 
   @@index([status, trialEndsAt])
+}
+
+model ContactInquiry {
+  id        String               @id @default(cuid())
+  name      String
+  email     String
+  topic     String
+  subject   String
+  message   String
+  status    ContactInquiryStatus @default(NEW)
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
+
+  @@index([status, createdAt])
+  @@index([email, createdAt])
 }

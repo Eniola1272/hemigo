@@ -5,6 +5,7 @@ import { randomBytes } from "node:crypto";
 const prisma = new PrismaClient();
 
 async function main() {
+  await prisma.contactInquiry.deleteMany();
   await prisma.messageAttachment.deleteMany();
   await prisma.message.deleteMany();
   await prisma.conversationParticipant.deleteMany();

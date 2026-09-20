@@ -12,7 +12,7 @@ export function Navbar({user=null}:{user?:NavbarUser}) {
   const [open, setOpen] = useState(false);
   const links=user
     ? [["Explore","/explore"],[user.hasVendor?"My Hemigos":"My purchases",user.hasVendor?"/dashboard/windows":"/purchases"]]
-    : [["Explore","/explore"],["How it works","/#how"],["Pricing","/#pricing"]];
+    : [["Explore","/explore"],["How it works","/#how"],["Pricing","/#pricing"],["About","/about"]];
   const mobileLinks=user?[...links,["Messages","/messages"]]:links;
   const actions=user
     ? <><Button href={user.hasVendor?"/dashboard":"/onboarding"}>{user.hasVendor?"Dashboard":"Start selling"}</Button><span className="grid size-9 place-items-center rounded-full bg-indigo-100 text-xs font-extrabold text-indigo-700">{user.name.split(/\s+/).map(part=>part[0]).join("").slice(0,2).toUpperCase()}</span></>

@@ -46,6 +46,7 @@ openssl rand -base64 48
 | `PLATFORM_FEE_PERCENT`                              | Yes                    | Platform share recorded in the settlement ledger and configured on vendor subaccounts. Defaults to `4`.                |
 | `EMAIL_PROVIDER_API_KEY`                            | Yes                    | Resend API key for verification and password-reset email.                                                              |
 | `EMAIL_FROM`                                        | Yes                    | Verified sender, for example `Hemigo <hello@hemigo.ng>`.                                                               |
+| `CONTACT_EMAIL`                                     | Yes                    | Team inbox that receives persisted Contact Us submissions.                                                             |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`          | Optional               | Google OAuth web-app credentials. Required when Google sign-in is enabled.                                             |
 | `PAYSTACK_MOCK_MODE`                                | No                     | Local/test-only payment finalization. It is ignored in production.                                                     |
 | `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB` | Local Docker only      | Credentials used by `compose.yaml`; they must match the local `DATABASE_URL`.                                          |
@@ -106,6 +107,10 @@ Authorization: Bearer YOUR_CRON_SECRET
 It expires abandoned inventory reservations, reconciles pending Paystack payments, updates timed window states, and removes expired sessions and auth tokens. The job is safe to run repeatedly.
 
 The readiness endpoint is `GET /api/health`; it returns HTTP 503 when PostgreSQL is unavailable.
+
+## Search and social metadata
+
+Hemigo publishes `robots.txt`, a database-backed `sitemap.xml`, a web app manifest, canonical URLs, Open Graph/Twitter metadata, and structured data for the organization and public storefront offers. Set `NEXT_PUBLIC_APP_URL` to the exact canonical production origin before building so generated sitemap, social, and structured-data URLs do not point to localhost. Private account, checkout, order, invoice, receipt, ticket, message, and dashboard routes return `X-Robots-Tag: noindex` and are excluded from crawling.
 
 ## Verification
 
