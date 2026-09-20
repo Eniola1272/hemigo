@@ -68,6 +68,12 @@ For every production release, run the checked-in migrations before starting the 
 npm run db:deploy
 ```
 
+Vercel uses the checked-in `vercel.json` build command to run `prisma generate` and
+`prisma migrate deploy` before `next build`. This ensures a newly provisioned database
+has every required table before database-backed routes such as `sitemap.xml` are built.
+Set `DATABASE_URL` in each Vercel environment that is allowed to deploy. Preview
+deployments should use a separate preview database instead of the production database.
+
 Use a managed PostgreSQL service with automated backups, point-in-time recovery, TLS, connection pooling, and separate development/staging/production databases. Docker Compose is only the local database.
 
 ## Paystack setup
