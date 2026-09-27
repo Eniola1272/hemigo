@@ -11,7 +11,13 @@ export async function POST(request: Request) {
   try{await enforceAuthRateLimit("login",parsed.data.email)}catch(error){return NextResponse.json({error:error instanceof Error?error.message:"Too many attempts."},{status:429})}
   const user = await db.user.findUnique({ where: { email: parsed.data.email } });
   if (!user || !(await compare(parsed.data.password, user.passwordHash))) return NextResponse.json({ error: "That email or password doesn’t match." }, { status: 401 });
-  if (!user.emailVerifiedAt) return NextResponse.json({ error: "Verify your email before logging in." }, { status: 403 });
+  if (!user.emailVerifiedAt) {
+    // Temporary verification bypass: Auto-verify on login until custom email domain is configured
+    await db.user.update({
+      where: { id: user.id },
+      data: { emailVerifiedAt: new Date() },
+    });
+  }
   await createSession(user.id);
   return NextResponse.json({ user: { id: user.id, name: user.name, email: user.email } });
 }
