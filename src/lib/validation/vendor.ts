@@ -25,7 +25,11 @@ export const productSchema = z.object({
 
 const optionalDate = z.preprocess(
   (value) => value === "" || value === null ? undefined : value,
-  z.coerce.date().optional(),
+  z.union([
+    z.date(),
+    z.iso.datetime({ offset: true, message: "Send dates with an explicit timezone." })
+      .transform((value) => new Date(value)),
+  ]).optional(),
 );
 
 export const windowSchema = z.object({
