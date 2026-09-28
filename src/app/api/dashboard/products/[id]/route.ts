@@ -12,6 +12,6 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   if (body.action === "archive") { await db.product.update({ where: { id }, data: { active: false } }); return NextResponse.json({ success: true }); }
   const parsed = productSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0]?.message }, { status: 400 });
-  const product = await db.product.update({ where: { id }, data: { name: parsed.data.name, description: parsed.data.description, imageUrl: parsed.data.imageUrl || null, defaultPrice: Math.round(parsed.data.defaultPriceNaira * 100) } });
+  const product = await db.product.update({ where: { id }, data: { name: parsed.data.name, description: parsed.data.description, type: parsed.data.type, imageUrl: parsed.data.imageUrl || null, fulfillmentUrl: parsed.data.fulfillmentUrl || null, serviceDurationMinutes: typeof parsed.data.serviceDurationMinutes === "number" ? parsed.data.serviceDurationMinutes : null, eventId: parsed.data.eventId || null, defaultPrice: Math.round(parsed.data.defaultPriceNaira * 100) } });
   return NextResponse.json({ product });
 }
