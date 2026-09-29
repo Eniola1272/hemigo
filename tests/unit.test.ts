@@ -4,6 +4,35 @@ import { formatNaira } from "../src/lib/utils";
 import { checkoutSchema } from "../src/lib/validation/checkout";
 import { windowSchema } from "../src/lib/validation/vendor";
 import { serializeWindowSchedule } from "../src/lib/window-schedule";
+import { filterSellingWindows, resolveWindowFilter } from "../src/lib/window-filters";
+
+test("selling-window filters use effective schedules and preserve draft/closed states", () => {
+  const now = new Date("2026-09-28T12:00:00Z");
+  const base = { mode: "LAUNCH" as const, status: "UPCOMING" as const, opensAt: new Date("2026-09-28T11:00:00Z"), closesAt: new Date("2026-09-28T13:00:00Z") };
+  const windows = [
+    { ...base, id: "live" },
+    { ...base, id: "upcoming", opensAt: new Date("2026-09-28T12:30:00Z") },
+    { ...base, id: "expired", closesAt: now },
+    { ...base, id: "draft", status: "DRAFT" as const },
+    { ...base, id: "closed", status: "CLOSED" as const },
+    { ...base, id: "shop", mode: "SHOP" as const, opensAt: null, closesAt: null },
+    { ...base, id: "closed-shop", mode: "SHOP" as const, status: "CLOSED" as const },
+  ];
+  const ids = (filter: string) => filterSellingWindows(windows, filter, now).map((item) => item.id);
+  assert.deepEqual(ids("all"), windows.map((item) => item.id));
+  assert.deepEqual(ids("live"), ["live", "shop"]);
+  assert.deepEqual(ids("upcoming"), ["upcoming"]);
+  assert.deepEqual(ids("closed"), ["expired", "closed", "closed-shop"]);
+  assert.deepEqual(ids("drafts"), ["draft"]);
+  assert.deepEqual(filterSellingWindows([windows[0]], "drafts", now), []);
+  assert.equal(filterSellingWindows([base], "live", base.opensAt).length, 1);
+});
+
+test("missing, invalid and repeated window filters safely select All", () => {
+  for (const value of [undefined, "invalid", ["live", "closed"]]) {
+    assert.equal(resolveWindowFilter(value).value, "all");
+  }
+});
 
 test("Lagos form times preserve the chosen instant on a UTC server", () => {
   const previous = process.env.TZ;

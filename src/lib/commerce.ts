@@ -15,6 +15,7 @@ export function isWindowAcceptingOrders(window: WindowTiming, now = new Date()) 
 
 export function effectiveWindowStatus(window: WindowTiming, now = new Date()) {
   if (window.status === "DRAFT") return "DRAFT" as const;
+  if (window.status === "CLOSED") return "CLOSED" as const;
   if (window.mode === "SHOP") return "LIVE" as const;
   if (!window.opensAt || !window.closesAt) return "DRAFT" as const;
   if (window.opensAt > now) return "UPCOMING" as const;
