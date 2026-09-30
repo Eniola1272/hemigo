@@ -5,4 +5,15 @@ import { db } from "@/lib/db";
 
 async function canAccess(userId:string,id:string){return db.conversation.findFirst({where:{id,OR:[{participants:{some:{userId}}},{vendor:{members:{some:{userId}}}}]},select:{id:true}})}
 export async function POST(request:Request,{params}:{params:Promise<{id:string}>}){const user=await requireUser();const{id}=await params;if(!await canAccess(user.id,id))return NextResponse.json({error:"Conversation not found."},{status:404});const parsed=z.object({body:z.string().trim().min(1).max(4000)}).safeParse(await request.json());if(!parsed.success)return NextResponse.json({error:"Write a message first."},{status:400});const message=await db.$transaction(async tx=>{const created=await tx.message.create({data:{conversationId:id,senderId:user.id,body:parsed.data.body},include:{sender:{select:{id:true,name:true,email:true}}}});await tx.conversation.update({where:{id},data:{updatedAt:new Date()}});await tx.conversationParticipant.updateMany({where:{conversationId:id,userId:user.id},data:{lastReadAt:new Date()}});return created});return NextResponse.json({message},{status:201})}
+export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
+  const user = await requireUser();
+  const { id } = await params;
+  if (!await canAccess(user.id, id)) return NextResponse.json({ error: "Conversation not found." }, { status: 404 });
+  const messages = await db.message.findMany({
+    where: { conversationId: id },
+    include: { sender: { select: { id: true, name: true, email: true } } },
+    orderBy: { createdAt: "asc" },
+  });
+  return NextResponse.json({ messages });
+}
 export async function PATCH(_:Request,{params}:{params:Promise<{id:string}>}){const user=await requireUser();const{id}=await params;if(!await canAccess(user.id,id))return NextResponse.json({error:"Conversation not found."},{status:404});await db.conversationParticipant.updateMany({where:{conversationId:id,userId:user.id},data:{lastReadAt:new Date()}});return NextResponse.json({success:true})}

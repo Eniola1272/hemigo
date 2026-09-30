@@ -1,6 +1,54 @@
-import Link from "next/link";
-import { MessageCircle } from "lucide-react";
+import { redirect } from "next/navigation";
+import { MessageCircle, Plus } from "lucide-react";
 import { Navbar } from "@/components/marketing/navbar";
 import { requireUser } from "@/lib/auth/session";
 import { db } from "@/lib/db";
-export default async function MessagesPage(){const user=await requireUser();const[hasVendor,conversations]=await Promise.all([db.vendorMember.findFirst({where:{userId:user.id},select:{id:true}}),db.conversation.findMany({where:{OR:[{participants:{some:{userId:user.id}}},{vendor:{members:{some:{userId:user.id}}}}]},include:{vendor:true,messages:{orderBy:{createdAt:"desc"},take:1},participants:{where:{userId:user.id}}},orderBy:{updatedAt:"desc"}})]);return <main className="min-h-screen bg-slate-50"><Navbar user={{name:user.name||user.email,hasVendor:Boolean(hasVendor)}}/><div className="mx-auto max-w-3xl px-4 py-10"><p className="eyebrow text-indigo-700">Inbox</p><h1 className="mt-2 text-4xl font-bold">Messages</h1><div className="card mt-7 overflow-hidden">{conversations.length?conversations.map(conversation=>{const last=conversation.messages[0];const lastRead=conversation.participants[0]?.lastReadAt;const unread=Boolean(last&&(!lastRead||last.createdAt>lastRead));return <Link href={`/messages/${conversation.id}`} key={conversation.id} className="flex gap-4 border-b p-5 hover:bg-slate-50"><span className="grid size-11 place-items-center rounded-full bg-indigo-50 text-indigo-700"><MessageCircle/></span><div className="min-w-0 flex-1"><div className="flex justify-between gap-3"><p className="truncate font-bold">{conversation.subject}</p>{unread&&<span className="size-2.5 rounded-full bg-indigo-600"/>}</div><p className="text-xs text-slate-500">{conversation.vendor.name}</p><p className="mt-2 truncate text-sm text-slate-500">{last?.body||"No messages yet"}</p></div></Link>}):<div className="p-12 text-center"><MessageCircle className="mx-auto text-indigo-300" size={40}/><h2 className="mt-4 text-xl font-bold">No conversations yet.</h2><p className="mt-2 text-slate-500">Message a seller from a storefront or order.</p></div>}</div></div></main>}
+import { Button } from "@/components/ui/button";
+
+export default async function MessagesPage() {
+  const user = await requireUser();
+  const [hasVendor, conversations] = await Promise.all([
+    db.vendorMember.findFirst({ where: { userId: user.id }, select: { id: true } }),
+    db.conversation.findMany({
+      where: {
+        OR: [
+          { participants: { some: { userId: user.id } } },
+          { vendor: { members: { some: { userId: user.id } } } },
+        ],
+      },
+      select: { id: true },
+      orderBy: { updatedAt: "desc" },
+      take: 1,
+    }),
+  ]);
+
+  if (conversations.length > 0) {
+    redirect(`/messages/${conversations[0].id}`);
+  }
+
+  return (
+    <main className="min-h-screen bg-slate-50">
+      <Navbar user={{ name: user.name || user.email, hasVendor: Boolean(hasVendor) }} />
+      <div className="mx-auto max-w-3xl px-4 py-16">
+        <div className="card p-12 text-center shadow-sm">
+          <div className="mx-auto grid size-16 place-items-center rounded-2xl bg-indigo-50 text-indigo-600">
+            <MessageCircle size={32} />
+          </div>
+          <h1 className="mt-5 text-2xl font-bold text-slate-900">No conversations yet</h1>
+          <p className="mt-2 text-sm text-slate-500 max-w-sm mx-auto">
+            You don&apos;t have any active message threads. Message a seller from any storefront or order.
+          </p>
+          <div className="mt-6 flex justify-center gap-3">
+            <Button href="/messages/new">
+              <Plus size={16} />
+              Start a message
+            </Button>
+            <Button href="/explore" tone="secondary">
+              Explore stores
+            </Button>
+          </div>
+        </div>
+      </div>
+    </main>
+  );
+}
