@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Field, Input, Select, Textarea } from "@/components/ui/form-field";
+import { ImageUpload } from "@/components/dashboard/image-upload";
 
 interface ProductData {
   id: string;
@@ -137,8 +138,8 @@ export function EditProductForm({ product, events }: { product: ProductData; eve
               <Input name="serviceDurationMinutes" type="number" min="1" defaultValue={product.serviceDurationMinutes} placeholder="60" />
             </Field>
           )}
-          <Field label="Image URL" hint="Cloud image uploads will replace this field in production.">
-            <Input name="imageUrl" type="url" defaultValue={product.imageUrl} placeholder="https://…" />
+          <Field label="Product image">
+            <ImageUpload defaultValue={product.imageUrl} name="imageUrl" />
           </Field>
           {error && <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}
           {success && <p className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-700">{success}</p>}

@@ -123,7 +123,6 @@ export function EditWindowForm({
 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [successMsg, setSuccessMsg] = useState("");
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
@@ -138,7 +137,6 @@ export function EditWindowForm({
   async function handleSave(statusOverride?: "DRAFT" | "UPCOMING" | "LIVE" | "CLOSED") {
     setBusy(true);
     setError("");
-    setSuccessMsg("");
 
     try {
       if (!selected.length) {
@@ -169,10 +167,7 @@ export function EditWindowForm({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Failed to save window.");
 
-      setSuccessMsg("Selling window updated successfully!");
-      if (statusOverride) {
-        setDetails((prev) => ({ ...prev, status: statusOverride }));
-      }
+      router.push("/dashboard/windows");
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to update window.");
@@ -254,13 +249,6 @@ export function EditWindowForm({
         <div className="flex items-center gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-800">
           <AlertCircle size={18} className="flex-shrink-0" />
           <span>{error}</span>
-        </div>
-      )}
-
-      {successMsg && (
-        <div className="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-medium text-emerald-800">
-          <CheckCircle2 size={18} className="flex-shrink-0" />
-          <span>{successMsg}</span>
         </div>
       )}
 
