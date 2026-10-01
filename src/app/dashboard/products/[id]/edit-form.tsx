@@ -30,7 +30,6 @@ export function EditProductForm({ product, events }: { product: ProductData; eve
   const [busy, setBusy] = useState(false);
   const [archiving, setArchiving] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [type, setType] = useState(product.type);
   const router = useRouter();
 
@@ -38,7 +37,6 @@ export function EditProductForm({ product, events }: { product: ProductData; eve
     event.preventDefault();
     setBusy(true);
     setError("");
-    setSuccess("");
     const f = new FormData(event.currentTarget);
     const response = await fetch(`/api/dashboard/products/${product.id}`, {
       method: "PATCH",
@@ -60,8 +58,7 @@ export function EditProductForm({ product, events }: { product: ProductData; eve
       setBusy(false);
       return;
     }
-    setSuccess("Product updated.");
-    setBusy(false);
+    router.push("/dashboard/products");
     router.refresh();
   }
 
@@ -142,7 +139,6 @@ export function EditProductForm({ product, events }: { product: ProductData; eve
             <ImageUpload defaultValue={product.imageUrl} name="imageUrl" />
           </Field>
           {error && <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}
-          {success && <p className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-700">{success}</p>}
           <Button type="submit" disabled={busy}>{busy ? "Saving…" : "Save changes"}</Button>
         </form>
       </div>
