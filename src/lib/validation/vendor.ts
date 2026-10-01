@@ -45,6 +45,7 @@ export const windowSchema = z.object({
   invoiceReservesInventory: z.boolean().default(true),
   theme: z.enum(["CLASSIC", "HYPE"]),
   publish: z.boolean().default(false),
+  status: z.enum(["DRAFT", "UPCOMING", "LIVE", "CLOSED"]).optional(),
   products: z.array(z.object({ productId: z.string(), priceNaira: z.coerce.number().positive(), inventoryLimit: z.coerce.number().int().positive().nullable(), maxPerCustomer: z.coerce.number().int().positive().nullable() })).min(1),
 }).superRefine((value, ctx) => {
   if (value.mode === "LAUNCH" && (!value.opensAt || !value.closesAt)) {
