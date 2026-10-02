@@ -219,114 +219,142 @@ export function HeroFerrisCarousel() {
               }`}
             >
               {isCenter ? (
-                /* ================= CENTER PHONE MOCKUP ================= */
-                <div className="relative h-[530px] w-[275px] rounded-[44px] border-[7px] border-slate-900 bg-slate-900 p-2.5 shadow-[0_30px_90px_rgba(15,23,42,0.35)] ring-1 ring-slate-800 sm:h-[590px] sm:w-[305px]">
-                  {/* Outer phone glare / frame details */}
-                  <div className="relative flex h-full w-full flex-col overflow-hidden rounded-[34px] bg-white text-slate-900">
-                    {/* Status Bar + Dynamic Island */}
-                    <div className="relative flex h-8 items-center justify-between px-6 pt-1 text-[11px] font-bold text-slate-900">
-                      <span>9:41</span>
-                      {/* Dynamic Island Pill */}
-                      <div className="absolute left-1/2 top-1.5 h-4.5 w-20 -translate-x-1/2 rounded-full bg-slate-950 px-2 flex items-center justify-end">
-                        <div className="size-2 rounded-full bg-slate-900 ring-1 ring-slate-800" />
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <Wifi size={11} />
-                        <Battery size={13} />
-                      </div>
-                    </div>
+                /* ================= ULTRA-SLEEK IPHONE 16 PRO MOCKUP ================= */
+                <div className="relative h-[550px] w-[275px] sm:h-[610px] sm:w-[305px]">
+                  {/* Subtle 3D hardware buttons on frame */}
+                  {/* Action Button */}
+                  <span className="absolute -left-[3px] top-[95px] h-6 w-[3px] rounded-l-xs bg-slate-600/90" />
+                  {/* Volume Up */}
+                  <span className="absolute -left-[3px] top-[135px] h-11 w-[3px] rounded-l-xs bg-slate-600/90" />
+                  {/* Volume Down */}
+                  <span className="absolute -left-[3px] top-[195px] h-11 w-[3px] rounded-l-xs bg-slate-600/90" />
+                  {/* Power / Side Button */}
+                  <span className="absolute -right-[3px] top-[145px] h-16 w-[3px] rounded-r-xs bg-slate-600/90" />
 
-                    {/* In-app Store Header */}
-                    <div className="flex items-center justify-between border-b border-slate-100 px-4 py-2.5">
-                      <div className="flex items-center gap-2">
-                        <span className="grid size-7 place-items-center rounded-full bg-indigo-600 text-xs font-black text-white">
-                          {activeItem.storeName.charAt(0)}
-                        </span>
-                        <div>
-                          <p className="text-xs font-bold leading-tight text-slate-900">
-                            {activeItem.storeName}
-                          </p>
-                          <span className="flex items-center gap-1 text-[10px] text-slate-400">
-                            <MapPin size={9} /> {activeItem.location}
-                          </span>
-                        </div>
-                      </div>
-                      <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[9px] font-bold text-emerald-700">
-                        ● Open Now
-                      </span>
-                    </div>
+                  {/* Titanium Outer Chassis */}
+                  <div className="relative h-full w-full rounded-[48px] p-[3px] bg-gradient-to-b from-slate-600 via-slate-800 to-slate-950 shadow-[0_30px_90px_-15px_rgba(15,23,42,0.4),0_0_0_1px_rgba(255,255,255,0.18)_inset]">
+                    {/* Inner Black Bezel (Razor-Thin ~4px) */}
+                    <div className="relative h-full w-full overflow-hidden rounded-[45px] bg-black p-[3.5px]">
+                      {/* OLED Screen Content Container */}
+                      <div className="relative flex h-full w-full flex-col overflow-hidden rounded-[41px] bg-white text-slate-900 select-none">
+                        {/* Diagonal Specular Glass Reflection Sheen */}
+                        <div
+                          aria-hidden="true"
+                          className="pointer-events-none absolute -inset-y-24 -left-20 z-30 w-44 rotate-25 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                        />
 
-                    {/* Phone App Content */}
-                    <div className="flex-1 overflow-y-auto px-4 py-3 hide-scrollbar">
-                      {/* Drop Banner Card */}
-                      <div className="rounded-2xl border border-indigo-100 bg-indigo-50/70 p-3">
-                        <div className="flex items-center justify-between text-[10px] font-bold text-indigo-700">
-                          <span className="uppercase tracking-wider">Selling Window</span>
-                          <span className="flex items-center gap-1">
-                            <Clock3 size={10} /> 05:42:18
-                          </span>
-                        </div>
-                        <h4 className="mt-1 text-sm font-extrabold text-slate-900">
-                          {activeItem.batchName}
-                        </h4>
-                        <p className="text-[10px] text-slate-500">{activeItem.closingTime}</p>
-                      </div>
+                        {/* Top iOS Status Bar + Dynamic Island */}
+                        <div className="relative z-20 flex h-9 shrink-0 items-center justify-between px-6 pt-1.5 text-[11px] font-semibold text-slate-950">
+                          <span className="font-semibold tracking-tight">9:41</span>
 
-                      {/* Main Product Hero Card */}
-                      <div className="mt-3 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xs">
-                        <div className="relative h-34 w-full bg-slate-100">
-                          <Image
-                            src={activeItem.imageUrl}
-                            alt={activeItem.productName}
-                            fill
-                            sizes="300px"
-                            priority
-                            className="object-cover"
-                          />
-                          <span className="absolute left-2.5 top-2.5 rounded-full bg-white/95 px-2 py-0.5 text-[9px] font-extrabold text-slate-800 shadow-xs">
-                            {activeItem.categoryTag}
-                          </span>
-                        </div>
-                        <div className="p-3">
-                          <h5 className="text-xs font-bold text-slate-900 leading-snug">
-                            {activeItem.productName}
-                          </h5>
-                          <div className="mt-2.5 flex items-center justify-between">
-                            <span className="text-sm font-black text-indigo-700">
-                              {activeItem.price}
-                            </span>
-                            <span className="rounded-md bg-indigo-50 px-1.5 py-0.5 text-[10px] font-bold text-indigo-600">
-                              {activeItem.remainingInfo}
-                            </span>
+                          {/* Dynamic Island */}
+                          <div className="absolute left-1/2 top-2 h-[22px] w-[86px] -translate-x-1/2 rounded-full bg-black px-2 flex items-center justify-between shadow-xs">
+                            {/* Camera optic */}
+                            <span className="size-2 rounded-full bg-[#0a0e14] ring-1 ring-[#1e293b]/70" />
+                            {/* Sensor indicator dot */}
+                            <span className="size-1.5 rounded-full bg-[#030712]" />
+                          </div>
+
+                          <div className="flex items-center gap-1.5">
+                            <Wifi size={12} className="stroke-[2.5]" />
+                            <Battery size={13} className="stroke-[2.2]" />
                           </div>
                         </div>
-                      </div>
 
-                      {/* Instant Fulfillment Preview Bar */}
-                      <div className="mt-3 rounded-xl border border-slate-100 bg-slate-50 p-2.5 text-[10px]">
-                        <div className="flex items-center justify-between font-bold text-slate-600">
-                          <span>Batch Progress</span>
-                          <span className="text-indigo-600 font-extrabold">90% Filled</span>
+                        {/* In-app Store Navigation Bar */}
+                        <div className="relative z-10 flex items-center justify-between border-b border-slate-100 bg-white/95 px-4 py-2.5 backdrop-blur-md">
+                          <div className="flex items-center gap-2">
+                            <span className="grid size-7.5 place-items-center rounded-full bg-gradient-to-br from-indigo-600 to-indigo-800 text-xs font-black text-white shadow-xs">
+                              {activeItem.storeName.charAt(0)}
+                            </span>
+                            <div>
+                              <p className="text-xs font-bold leading-tight text-slate-900">
+                                {activeItem.storeName}
+                              </p>
+                              <span className="flex items-center gap-1 text-[10px] font-medium text-slate-400">
+                                <MapPin size={9} className="text-indigo-500" /> {activeItem.location}
+                              </span>
+                            </div>
+                          </div>
+                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[9px] font-bold text-emerald-700">
+                            <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                            Open
+                          </span>
                         </div>
-                        <div className="mt-1.5 h-1.5 w-full rounded-full bg-slate-200 overflow-hidden">
-                          <div className="h-full w-[90%] rounded-full bg-indigo-600" />
+
+                        {/* Screen Scrollable Body */}
+                        <div className="flex-1 overflow-y-auto px-3.5 py-3 hide-scrollbar space-y-3">
+                          {/* Active Selling Window Banner */}
+                          <div className="rounded-2xl border border-indigo-100/90 bg-gradient-to-br from-indigo-50/90 via-indigo-50/50 to-white p-3 shadow-2xs">
+                            <div className="flex items-center justify-between text-[10px] font-bold text-indigo-700">
+                              <span className="uppercase tracking-wider">Selling Window</span>
+                              <span className="flex items-center gap-1 font-extrabold text-indigo-900 bg-white/80 px-1.5 py-0.5 rounded-md border border-indigo-100">
+                                <Clock3 size={10} className="text-indigo-600" /> 05:42:18
+                              </span>
+                            </div>
+                            <h4 className="mt-1.5 text-sm font-extrabold text-slate-900">
+                              {activeItem.batchName}
+                            </h4>
+                            <p className="text-[10px] text-slate-500">{activeItem.closingTime}</p>
+                          </div>
+
+                          {/* Hero Product Card */}
+                          <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs transition hover:shadow-md">
+                            <div className="relative h-36 w-full bg-slate-100">
+                              <Image
+                                src={activeItem.imageUrl}
+                                alt={activeItem.productName}
+                                fill
+                                sizes="320px"
+                                priority
+                                className="object-cover"
+                              />
+                              <span className="absolute left-2.5 top-2.5 rounded-full bg-white/95 px-2.5 py-0.5 text-[9px] font-extrabold text-slate-900 shadow-xs backdrop-blur-xs">
+                                {activeItem.categoryTag}
+                              </span>
+                            </div>
+                            <div className="p-3">
+                              <h5 className="text-xs font-bold text-slate-900 leading-snug">
+                                {activeItem.productName}
+                              </h5>
+                              <div className="mt-2.5 flex items-center justify-between">
+                                <span className="text-base font-black tracking-tight text-indigo-700">
+                                  {activeItem.price}
+                                </span>
+                                <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-extrabold text-amber-800 border border-amber-200/60">
+                                  {activeItem.remainingInfo}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Batch Capacity Meter */}
+                          <div className="rounded-xl border border-slate-100 bg-slate-50/90 p-2.5 text-[10px]">
+                            <div className="flex items-center justify-between font-bold text-slate-600">
+                              <span>Batch Capacity</span>
+                              <span className="text-indigo-600 font-extrabold">90% Ordered</span>
+                            </div>
+                            <div className="mt-1.5 h-1.5 w-full rounded-full bg-slate-200 overflow-hidden">
+                              <div className="h-full w-[90%] rounded-full bg-gradient-to-r from-indigo-500 to-indigo-600" />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Bottom Sticky Action Bar */}
+                        <div className="border-t border-slate-100 bg-white/95 p-3 backdrop-blur-xs">
+                          <Link
+                            href={`/${activeItem.storeSlug}`}
+                            className="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-950 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-slate-800"
+                          >
+                            <ShoppingBag size={13} /> Order From Store
+                          </Link>
+                        </div>
+
+                        {/* iOS Home Indicator Bar */}
+                        <div className="flex justify-center pb-1.5 pt-0.5 bg-white">
+                          <div className="h-1 w-28 rounded-full bg-slate-900/30" />
                         </div>
                       </div>
-                    </div>
-
-                    {/* Bottom Checkout CTA Bar */}
-                    <div className="border-t border-slate-100 bg-white p-3">
-                      <Link
-                        href={`/${activeItem.storeSlug}`}
-                        className="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-950 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-slate-800"
-                      >
-                        <ShoppingBag size={13} /> Order From Store
-                      </Link>
-                    </div>
-
-                    {/* Home Indicator Bar */}
-                    <div className="flex justify-center pb-1">
-                      <div className="h-1 w-28 rounded-full bg-slate-300" />
                     </div>
                   </div>
                 </div>

@@ -3,13 +3,9 @@ import Link from "next/link";
 import {
   ArrowRight,
   CheckCircle2,
-  Clock3,
   MapPin,
   PackageCheck,
   Search,
-  Sparkles,
-  Store,
-  WalletCards,
   Wifi,
   Battery,
 } from "lucide-react";
@@ -73,19 +69,38 @@ export function FeatureBanner() {
 
           {/* Right Phone Mockup with Live Orders and Floating Badge */}
           <div className="relative z-10 flex items-center justify-center p-6 sm:p-10 lg:pr-14">
-            <div className="relative w-full max-w-[340px]">
-              {/* Phone Device Frame */}
-              <div className="relative h-[560px] w-full rounded-[42px] border-[6px] border-slate-900 bg-slate-900 p-2 shadow-[0_30px_90px_rgba(0,0,0,0.6)] ring-1 ring-white/10">
-                <div className="relative flex h-full w-full flex-col overflow-hidden rounded-[34px] bg-slate-50 text-slate-900">
-                  {/* Status Bar */}
-                  <div className="flex h-8 items-center justify-between px-6 pt-1 text-[11px] font-bold text-slate-900">
-                    <span>9:41</span>
-                    <div className="h-4.5 w-18 rounded-full bg-slate-950" />
-                    <div className="flex items-center gap-1.5">
-                      <Wifi size={11} />
-                      <Battery size={13} />
+            <div className="relative w-full max-w-[325px]">
+              {/* Subtle 3D hardware buttons on frame */}
+              <span className="absolute -left-[3px] top-[90px] h-6 w-[3px] rounded-l-xs bg-slate-600/90 z-20" />
+              <span className="absolute -left-[3px] top-[130px] h-10 w-[3px] rounded-l-xs bg-slate-600/90 z-20" />
+              <span className="absolute -left-[3px] top-[185px] h-10 w-[3px] rounded-l-xs bg-slate-600/90 z-20" />
+              <span className="absolute -right-[3px] top-[140px] h-14 w-[3px] rounded-r-xs bg-slate-600/90 z-20" />
+
+              {/* Titanium Outer Chassis */}
+              <div className="relative h-[570px] w-full rounded-[48px] p-[3px] bg-gradient-to-b from-slate-600 via-slate-800 to-slate-950 shadow-[0_30px_90px_rgba(0,0,0,0.65),0_0_0_1px_rgba(255,255,255,0.18)_inset]">
+                {/* Inner Black Bezel (Razor-Thin ~3.5px) */}
+                <div className="relative h-full w-full overflow-hidden rounded-[45px] bg-black p-[3.5px]">
+                  {/* OLED Screen Container */}
+                  <div className="relative flex h-full w-full flex-col overflow-hidden rounded-[41px] bg-slate-50 text-slate-900 select-none">
+                    {/* Diagonal Specular Glass Reflection Sheen */}
+                    <div
+                      aria-hidden="true"
+                      className="pointer-events-none absolute -inset-y-24 -left-20 z-30 w-44 rotate-25 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                    />
+
+                    {/* Status Bar + Dynamic Island */}
+                    <div className="relative z-20 flex h-9 shrink-0 items-center justify-between px-6 pt-1.5 text-[11px] font-semibold text-slate-950">
+                      <span className="font-semibold tracking-tight">9:41</span>
+                      {/* Dynamic Island */}
+                      <div className="absolute left-1/2 top-2 h-[22px] w-[86px] -translate-x-1/2 rounded-full bg-black px-2 flex items-center justify-between shadow-xs">
+                        <span className="size-2 rounded-full bg-[#0a0e14] ring-1 ring-[#1e293b]/70" />
+                        <span className="size-1.5 rounded-full bg-[#030712]" />
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <Wifi size={12} className="stroke-[2.5]" />
+                        <Battery size={13} className="stroke-[2.2]" />
+                      </div>
                     </div>
-                  </div>
 
                   {/* App Dashboard Header */}
                   <div className="border-b border-slate-200 bg-white px-4 py-3">
@@ -155,8 +170,14 @@ export function FeatureBanner() {
                       <PackageCheck size={14} /> Export Dispatch Manifest
                     </div>
                   </div>
+
+                  {/* iOS Home Indicator Bar */}
+                  <div className="flex justify-center pb-1.5 pt-0.5 bg-white">
+                    <div className="h-1 w-28 rounded-full bg-slate-900/30" />
+                  </div>
                 </div>
               </div>
+            </div>
 
               {/* Floating Verified Highlight Card (like in reference image) */}
               <div className="absolute -bottom-6 -left-8 z-20 w-64 rounded-2xl border border-slate-200/80 bg-white/95 p-3.5 text-slate-900 shadow-[0_20px_50px_rgba(0,0,0,0.25)] backdrop-blur-md">

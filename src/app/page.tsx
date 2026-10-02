@@ -8,7 +8,6 @@ import {
   PackageCheck,
   Search,
   ShoppingBag,
-  Sparkles,
   Store,
 } from "lucide-react";
 import { Navbar } from "@/components/marketing/navbar";
@@ -91,10 +90,7 @@ export default async function Home() {
           {/* Main Hero Headline matching reference */}
           <h1 className="mx-auto max-w-4xl text-4xl font-extrabold tracking-[-0.04em] text-slate-950 sm:text-6xl lg:text-[72px] lg:leading-[1.05]">
             Rediscover the joy<br />
-            of the{" "}
-            <span className="inline-flex items-center gap-2 text-indigo-600 align-baseline">
-              <Sparkles className="size-8 sm:size-12 lg:size-14 text-indigo-600 stroke-[2.2]" /> batch drop
-            </span>
+            of the <span className="text-indigo-600">batch drop</span>
           </h1>
 
           {/* Subtitle */}
