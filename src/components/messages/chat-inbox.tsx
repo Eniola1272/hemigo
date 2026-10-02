@@ -815,7 +815,7 @@ export function ChatInbox({
                   <div className="min-w-0 flex-1">
                     <p className="text-[11px] font-semibold text-slate-400">Store URL</p>
                     <p className="truncate text-xs font-bold text-slate-800">
-                      hemigo.ng/store/{activeConversation.contact.storeSlug}
+                      hemigo.com.ng/store/{activeConversation.contact.storeSlug}
                     </p>
                   </div>
                   <button

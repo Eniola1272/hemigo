@@ -806,7 +806,7 @@ Your Hemigo link
 Example:
 
 ```text
-hemigo.ng/amaka-kitchen
+hemigo.com.ng/amaka-kitchen
 ```
 
 Allow slug editing.
@@ -1189,7 +1189,7 @@ Your selling window is live 🎉
 Share URL:
 
 ```text
-hemigo.ng/amaka-kitchen/sunday-lunch
+hemigo.com.ng/amaka-kitchen/sunday-lunch
 ```
 
 Buttons:

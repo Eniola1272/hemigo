@@ -3,6 +3,7 @@ import { Logo } from "@/components/brand/logo";
 
 const links = [
   ["Explore", "/explore"],
+  ["Docs", "/docs"],
   ["About us", "/about"],
   ["Contact us", "/contact"],
   ["Start selling", "/signup"],

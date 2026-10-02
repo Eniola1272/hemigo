@@ -57,7 +57,7 @@ export async function POST(request: Request) {
     message: parsed.data.message,
   };
   const inquiry = await db.contactInquiry.create({ data: inquiryData });
-  const supportEmail = process.env.CONTACT_EMAIL || "hello@hemigo.ng";
+  const supportEmail = process.env.CONTACT_EMAIL || "hello@hemigo.com.ng";
   const safe = Object.fromEntries(
     Object.entries(inquiryData).map(([key, value]) => [key, escapeHtml(value)]),
   );

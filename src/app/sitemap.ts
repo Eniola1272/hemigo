@@ -3,25 +3,31 @@ import { db } from "@/lib/db";
 import { absoluteUrl } from "@/lib/seo";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const windows = await db.sellingWindow.findMany({
-    where: {
-      OR: [
-        { mode: "SHOP", status: "LIVE" },
-        { mode: "LAUNCH", status: { in: ["UPCOMING", "LIVE"] } },
-      ],
-    },
-    select: {
-      slug: true,
-      mode: true,
-      updatedAt: true,
-      vendor: { select: { slug: true } },
-    },
-    orderBy: { updatedAt: "desc" },
-  });
+  let windows: { slug: string; mode: string; updatedAt: Date; vendor: { slug: string } }[] = [];
+  try {
+    windows = await db.sellingWindow.findMany({
+      where: {
+        OR: [
+          { mode: "SHOP", status: "LIVE" },
+          { mode: "LAUNCH", status: { in: ["UPCOMING", "LIVE"] } },
+        ],
+      },
+      select: {
+        slug: true,
+        mode: true,
+        updatedAt: true,
+        vendor: { select: { slug: true } },
+      },
+      orderBy: { updatedAt: "desc" },
+    });
+  } catch (err) {
+    console.warn("[Sitemap warning] Could not fetch selling windows from database:", err);
+  }
 
   const staticPages: MetadataRoute.Sitemap = [
     { url: absoluteUrl("/"), changeFrequency: "weekly", priority: 1 },
     { url: absoluteUrl("/explore"), changeFrequency: "daily", priority: 0.9 },
+    { url: absoluteUrl("/docs"), changeFrequency: "weekly", priority: 0.8 },
     { url: absoluteUrl("/about"), changeFrequency: "monthly", priority: 0.7 },
     { url: absoluteUrl("/contact"), changeFrequency: "monthly", priority: 0.6 },
   ];

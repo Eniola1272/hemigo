@@ -45,7 +45,7 @@ openssl rand -base64 48
 | `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY`                   | Optional               | Reserved for a future inline Paystack flow; checkout currently redirects through the server-created authorization URL. |
 | `PLATFORM_FEE_PERCENT`                              | Yes                    | Platform share recorded in the settlement ledger and configured on vendor subaccounts. Defaults to `4`.                |
 | `EMAIL_PROVIDER_API_KEY`                            | Yes                    | Resend API key for verification and password-reset email.                                                              |
-| `EMAIL_FROM`                                        | Yes                    | Verified sender, for example `Hemigo <hello@hemigo.ng>`.                                                               |
+| `EMAIL_FROM`                                        | Yes                    | Verified sender, for example `Hemigo <hello@hemigo.com.ng>`.                                                               |
 | `CONTACT_EMAIL`                                     | Yes                    | Team inbox that receives persisted Contact Us submissions.                                                             |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`          | Optional               | Google OAuth web-app credentials. Required when Google sign-in is enabled.                                             |
 | `PAYSTACK_MOCK_MODE`                                | No                     | Local/test-only payment finalization. It is ignored in production.                                                     |

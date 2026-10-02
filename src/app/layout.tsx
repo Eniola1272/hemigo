@@ -68,11 +68,11 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         name: siteConfig.name,
         url: siteConfig.url,
         logo: absoluteUrl(siteConfig.icon),
-        email: process.env.CONTACT_EMAIL || "hello@hemigo.ng",
+        email: process.env.CONTACT_EMAIL || "hello@hemigo.com.ng",
         contactPoint: {
           "@type": "ContactPoint",
           contactType: "customer support",
-          email: process.env.CONTACT_EMAIL || "hello@hemigo.ng",
+          email: process.env.CONTACT_EMAIL || "hello@hemigo.com.ng",
           areaServed: "NG",
           availableLanguage: ["English"],
         },
