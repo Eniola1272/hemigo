@@ -5,6 +5,7 @@ import { registerSchema } from "@/lib/validation/auth";
 import { randomBytes } from "node:crypto";
 import { createSession, hashToken } from "@/lib/auth/session";
 import { sendVerificationEmail } from "@/lib/email";
+import { notifyAdminNewUser } from "@/lib/admin-notifications";
 import { enforceAuthRateLimit } from "@/lib/auth/rate-limit";
 
 export async function POST(request: Request) {
@@ -42,6 +43,13 @@ export async function POST(request: Request) {
   } catch (emailErr) {
     console.warn("[Register email warning]", emailErr);
   }
+
+  // Notify admin asynchronously (Email & Telegram)
+  notifyAdminNewUser({
+    name: user.name,
+    email: user.email,
+    provider: "Email & Password",
+  }).catch((err) => console.warn("[Admin notify error on register]", err));
 
   if (!hasEmailKey) {
     await createSession(user.id);

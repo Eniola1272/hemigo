@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { createSession } from "@/lib/auth/session";
 import { db } from "@/lib/db";
+import { notifyAdminNewUser } from "@/lib/admin-notifications";
 type GoogleUser={sub:string;email:string;email_verified:boolean;name?:string};
 export async function GET(request:Request){
   const url=new URL(request.url);
@@ -44,9 +45,17 @@ export async function GET(request:Request){
   let user=account?.user??null;
   if(!user){
     user=await db.user.findUnique({where:{email:profile.email.toLowerCase()}});
+    const isBrandNew = !user;
     if(!user)user=await db.user.create({data:{email:profile.email.toLowerCase(),name:profile.name,passwordHash:await hash(randomBytes(48).toString("base64url"),12),emailVerifiedAt:new Date()}});
     else if(!user.emailVerifiedAt)user=await db.user.update({where:{id:user.id},data:{emailVerifiedAt:new Date(),name:user.name||profile.name}});
     await db.oAuthAccount.create({data:{userId:user.id,provider:"google",providerAccountId:profile.sub}});
+    if (isBrandNew) {
+      notifyAdminNewUser({
+        name: user.name,
+        email: user.email,
+        provider: "Google OAuth",
+      }).catch((err) => console.warn("[Admin notify error on google signup]", err));
+    }
   }
   await createSession(user.id);
   const hasVendor=Boolean(await db.vendorMember.findFirst({where:{userId:user.id},select:{id:true}}));
